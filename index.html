@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>kv paste feed</title>
+  <title>endless</title>
   <style>
     body {
       margin: 0;
@@ -17,7 +17,6 @@
       left: 10px;
       font-size: 12px;
       opacity: 0.5;
-      z-index: 10;
     }
 
     .feed {
@@ -36,7 +35,7 @@
       padding: 10px;
     }
 
-    .post img {
+    img {
       width: 100%;
       display: block;
       border-radius: 10px;
@@ -48,39 +47,24 @@
       margin-top: 6px;
       word-break: break-all;
     }
-
-    .empty {
-      opacity: 0.3;
-      text-align: center;
-      margin-top: 100px;
-    }
   </style>
 </head>
 <body>
 
 <div class="hint">paste image URL → saved to KV</div>
-
-<div id="feed" class="feed">
-  <div class="empty" id="empty">loading…</div>
-</div>
+<div id="feed" class="feed"></div>
 
 <script>
 const feed = document.getElementById('feed')
-const empty = document.getElementById('empty')
 
 function render(post) {
   const el = document.createElement('div')
   el.className = 'post'
 
-  const img = document.createElement('img')
-  img.src = post.image
-
-  const meta = document.createElement('div')
-  meta.className = 'meta'
-  meta.textContent = post.id
-
-  el.appendChild(img)
-  el.appendChild(meta)
+  el.innerHTML = `
+    <img src="${post.image}" />
+    <div class="meta">${post.id}</div>
+  `
 
   feed.prepend(el)
 }
@@ -88,18 +72,13 @@ function render(post) {
 async function load() {
   const res = await fetch('/api/feed')
   const posts = await res.json()
-
-  empty?.remove()
-
   posts.reverse().forEach(render)
 }
 
 async function save(image) {
   await fetch('/api/post', {
     method: 'POST',
-    headers: {
-      'content-type': 'application/json'
-    },
+    headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ image })
   })
 }
@@ -108,8 +87,6 @@ document.addEventListener('paste', async (e) => {
   const text = (e.clipboardData || window.clipboardData)
     .getData('text')
     .trim()
-
-  if (!text) return
 
   if (!/^https?:\/\/.+\.(jpg|jpeg|png|gif|webp)/i.test(text)) return
 
