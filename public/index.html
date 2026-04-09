@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>endless</title>
+  <style>
+    body { font-family: sans-serif; margin: 0; }
+    .post { padding: 20px; border-bottom: 1px solid #eee; }
+    img { max-width: 100%; display: block; }
+    .id { font-size: 12px; opacity: 0.5; }
+    .editor { margin-top: 10px; outline: none; }
+  </style>
+</head>
+<body>
+
+<div id="feed"></div>
+
+<script>
+async function load() {
+  const res = await fetch('/api/feed')
+  const posts = await res.json()
+
+  posts.forEach(render)
+}
+
+function render(post) {
+  const el = document.createElement('div')
+  el.className = 'post'
+
+  el.innerHTML = `
+    <img src="${post.image}" />
+    <div class="id">${post.id}</div>
+    <div class="editor" contenteditable data-id="${post.id}">
+      ${post.text || ''}
+    </div>
+  `
+
+  document.getElementById('feed').appendChild(el)
+}
+
+let timer
+
+document.addEventListener('input', (e) => {
+  if (!e.target.classList.contains('editor')) return
+
+  clearTimeout(timer)
+
+  timer = setTimeout(async () => {
+    const id = e.target.dataset.id
+
+    await fetch('/api/post/' + id, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        text: e.target.innerText
+      })
+    })
+  }, 400)
+})
+
+// быстрый добавление поста через prompt
+document.addEventListener('keydown', async (e) => {
+  if (e.key === 'n') {
+    const url = prompt('image url')
+    if (!url) return
+
+    const res = await fetch('/api/post', {
+      method: 'POST',
+      body: JSON.stringify({ image: url })
+    })
+
+    const { id } = await res.json()
+
+    location.reload()
+  }
+})
+
+load()
+</script>
+
+</body>
+</html>

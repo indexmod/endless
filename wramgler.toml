@@ -1,0 +1,13 @@
+name = "endless"
+main = "worker.js"
+compatibility_date = "2026-04-09"
+
+[vars]
+FEED_KEY = "feed"
+
+[[kv_namespaces]]
+binding = "DB"
+id = "YOUR_KV_ID"
+
+[assets]
+directory = "./public"
