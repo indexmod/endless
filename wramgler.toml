@@ -11,3 +11,4 @@ id = "e97a6ea650144667aeeb55e318c2e6af"
 
 [assets]
 directory = "./public"
+binding = "ASSETS"

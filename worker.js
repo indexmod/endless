@@ -6,60 +6,104 @@ export default {
       return handleAPI(req, env, url)
     }
 
-    // статика
     return env.ASSETS.fetch(req)
   }
 }
 
 async function handleAPI(req, env, url) {
-  if (req.method === "GET" && url.pathname === "/api/feed") {
-    const feed = JSON.parse(await env.DB.get("feed") || "[]")
+  try {
 
-    const posts = await Promise.all(
-      feed.slice(-20).reverse().map(async (id) => {
-        const data = await env.DB.get("post:" + id)
-        return { id, ...JSON.parse(data) }
-      })
-    )
+    // ---------------- FEED ----------------
+    if (req.method === "GET" && url.pathname === "/api/feed") {
+      const raw = await env.DB.get("feed")
+      const feed = safeJSON(raw, [])
 
-    return json(posts)
+      const posts = await Promise.all(
+        feed.slice(-50).reverse().map(async (id) => {
+          const data = await env.DB.get("post:" + id)
+          if (!data) return null
+          return { id, ...safeJSON(data, {}) }
+        })
+      )
+
+      return json(posts.filter(Boolean))
+    }
+
+    // ---------------- CREATE POST ----------------
+    if (req.method === "POST" && url.pathname === "/api/post") {
+      const body = await safeBody(req)
+      if (!body?.image) return json({ error: "no image" }, 400)
+
+      const id = crypto.randomUUID().slice(0, 8)
+
+      await env.DB.put("post:" + id, JSON.stringify({
+        image: body.image,
+        text: ""
+      }))
+
+      const feed = safeJSON(await env.DB.get("feed"), [])
+
+      feed.push(id)
+
+      // защита от разрастания KV
+      const trimmed = feed.slice(-200)
+
+      await env.DB.put("feed", JSON.stringify(trimmed))
+
+      return json({ id })
+    }
+
+    // ---------------- UPDATE POST ----------------
+    if (req.method === "PATCH" && url.pathname.startsWith("/api/post/")) {
+      const id = url.pathname.split("/").pop()
+      const body = await safeBody(req)
+
+      if (!body) return json({ error: "bad json" }, 400)
+
+      const post = safeJSON(await env.DB.get("post:" + id), null)
+      if (!post) return json({ error: "not found" }, 404)
+
+      post.text = (body.text || "").slice(0, 500)
+
+      await env.DB.put("post:" + id, JSON.stringify(post))
+
+      return json({ ok: true })
+    }
+
+    return json({ error: "not found" }, 404)
+
+  } catch (e) {
+    return json({
+      error: "server crash",
+      details: e.message
+    }, 500)
   }
-
-  if (req.method === "POST" && url.pathname === "/api/post") {
-    const { image } = await req.json()
-
-    const id = crypto.randomUUID().slice(0, 8)
-
-    await env.DB.put("post:" + id, JSON.stringify({
-      image,
-      text: ""
-    }))
-
-    const feed = JSON.parse(await env.DB.get("feed") || "[]")
-    feed.push(id)
-    await env.DB.put("feed", JSON.stringify(feed))
-
-    return json({ id })
-  }
-
-  if (req.method === "PATCH" && url.pathname.startsWith("/api/post/")) {
-    const id = url.pathname.split("/").pop()
-    const { text } = await req.json()
-
-    const post = JSON.parse(await env.DB.get("post:" + id) || "{}")
-
-    post.text = text.slice(0, 500)
-
-    await env.DB.put("post:" + id, JSON.stringify(post))
-
-    return json({ ok: true })
-  }
-
-  return new Response("Not found", { status: 404 })
 }
 
-function json(data) {
+// ---------------- HELPERS ----------------
+
+function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
-    headers: { "content-type": "application/json" }
+    status,
+    headers: {
+      "content-type": "application/json",
+      "access-control-allow-origin": "*"
+    }
   })
+}
+
+function safeJSON(str, fallback) {
+  try {
+    return JSON.parse(str || "")
+  } catch {
+    return fallback
+  }
+}
+
+async function safeBody(req) {
+  try {
+    return await req.json()
+  } catch {
+    return null
+  }
 }
