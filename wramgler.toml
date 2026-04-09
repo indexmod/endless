@@ -7,7 +7,7 @@ FEED_KEY = "feed"
 
 [[kv_namespaces]]
 binding = "DB"
-id = "YOUR_KV_ID"
+id = "e97a6ea650144667aeeb55e318c2e6af"
 
 [assets]
 directory = "./public"
