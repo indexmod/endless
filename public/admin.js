@@ -3,10 +3,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const textInput = document.getElementById("text");
   const counter = document.getElementById("counter");
   const sendBtn = document.getElementById("sendBtn");
-  const root = document.getElementById("adminList");
   const lastPost = document.getElementById("lastPost");
 
-  if (!imgInput || !textInput || !counter || !sendBtn || !root || !lastPost) {
+  if (!imgInput || !textInput || !counter || !sendBtn || !lastPost) {
     console.error("ADMIN INIT FAILED");
     return;
   }
@@ -41,18 +40,15 @@ document.addEventListener("DOMContentLoaded", () => {
       textInput.value = "";
       counter.textContent = "0 / 500";
 
-      // показать последний пост сразу
+      // показать только что созданный пост
       renderLast(json.post);
-
-      // обновить список
-      loadAdmin();
 
     } catch (e) {
       console.error("SEND ERROR:", e);
     }
   });
 
-  // ================= LAST POST =================
+  // ================= RENDER LAST =================
   function renderLast(post){
     lastPost.innerHTML = "";
 
@@ -71,49 +67,20 @@ document.addEventListener("DOMContentLoaded", () => {
     lastPost.appendChild(card);
   }
 
-  // ================= LOAD =================
-  async function loadAdmin() {
+  // ================= INIT (показываем последний из облака) =================
+  async function initLast(){
     try {
       const res = await fetch("/api/feed");
       const json = await res.json();
 
-      root.innerHTML = "";
+      if (json.data && json.data.length > 0) {
+        renderLast(json.data[0]); // только первый (самый свежий)
+      }
 
-      json.data.forEach(post => {
-        const row = document.createElement("div");
-        row.className = "adminItem";
-
-        const img = document.createElement("img");
-        img.src = post.image;
-
-        const text = document.createElement("div");
-        text.textContent = post.text;
-
-        const btn = document.createElement("button");
-        btn.textContent = "delete";
-
-        btn.onclick = async () => {
-          await fetch("/api/delete", {
-            method: "POST",
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify({ id: post.id })
-          });
-
-          loadAdmin();
-        };
-
-        row.appendChild(img);
-        row.appendChild(text);
-        row.appendChild(btn);
-
-        root.appendChild(row);
-      });
-
-    } catch (err) {
-      console.error("LOAD ADMIN ERROR:", err);
+    } catch (e) {
+      console.error("INIT LOAD ERROR", e);
     }
   }
 
-  // ================= INIT =================
-  loadAdmin();
+  initLast();
 });
