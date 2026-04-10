@@ -1,3 +1,5 @@
+
+return new Response("WORKER LIVE", { status: 200 });
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
