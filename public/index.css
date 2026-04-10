@@ -38,31 +38,16 @@ body{
   height:50%;
 }
 
-/* MAIN */
-.imageMain{
+.imageMainWrap{
   height:100%;
-  width:auto;
-
-  object-fit:cover;
-  object-position:top;
-
-  display:block;
-  filter:grayscale(1);
+  flex:1;              /* 💥 занимает всё доступное место */
+  position:relative;
+  overflow:hidden;     /* 💥 обрезка */
 }
 
-/* THUMB — ровно 50% по высоте от MAIN */
-.imageThumb{
-  height:50%;        /* 💥 ключевое правило */
-  width:auto;
-
-  object-fit:contain;
-
-  display:block;
-
-  background:transparent;
-  border:none;
-  box-shadow:none;
-  outline:none;
+.imageThumbWrap{
+  height:50%;
+  aspect-ratio:1 / 1;  /* можно убрать если не нужно */
 }
 
 /* текст */
