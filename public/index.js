@@ -97,16 +97,17 @@ function render() {
 
 // ================= SAVE =================
 async function saveToServer(post) {
-  const res = await fetch("/api/post/update", {
+  await fetch("/api/update", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      id: post.id,     // 💥 КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ
+      id: post.id,
       text: post.text
     })
   });
+}
 
   if (!res.ok) {
     throw new Error("save failed");
