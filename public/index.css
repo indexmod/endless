@@ -1,25 +1,25 @@
 body{
   margin:0;
-  font-family:"Helvetica Neue", Helvetica, Arial, sans-serif;
-  background:white;
-  color:black;
+  background:#111214; /* тёмный фон как ChatGPT */
+  color:#e6e6e6;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   overflow-x:auto;
   overflow-y:hidden;
 }
 
-/* горизонтальная лента */
+/* лента */
 .feed{
   display:flex;
   flex-direction:row;
   gap:20px;
   padding:20px;
-  width:max-content;
   height:100vh;
+  width:max-content;
   box-sizing:border-box;
-  align-items:flex-end;
+  align-items:flex-start;
 }
 
-/* пост = ровно экран */
+/* пост */
 .post{
   width:80vw;
   height:100%;
@@ -29,65 +29,44 @@ body{
   gap:20px;
 }
 
-/* блок картинок */
-.imageRow{
-  display:flex;
-  gap:20px;
+/* картинка */
+.imageWrap{
   height:50%;
-  align-items:flex-end;
-}
+  width:100%;
 
-/* MAIN контейнер */
-.imageMainWrap{
-  flex:1;
-  height:100%;
+  border-radius:18px;
   overflow:hidden;
+
+  background:#1a1b1e;
 }
 
-/* THUMB контейнер */
-.imageThumbWrap{
-  height:50%;     /* 💥 всегда половина main */
-  aspect-ratio:1/1;
-}
-
-/* MAIN картинка */
+/* сама картинка */
 .imageMain{
   width:100%;
   height:100%;
-
   object-fit:cover;
   object-position:top;
-
-  display:block;
-  filter:grayscale(1);
-}
-
-/* THUMB картинка */
-.imageThumb{
-  width:100%;
-  height:100%;
-
-  object-fit:contain;
   display:block;
 }
 
-/* текст */
+/* текстовая зона */
 .text{
   height:50%;
   width:100%;
+
+  background:#1a1b1e; /* чуть светлее чем body */
+  border-radius:18px;
 
   border:none;
   outline:none;
   resize:none;
 
-  font-size:25px;
-  font-weight:700;
-  line-height:1.4;
-
-  padding:0;
-  margin:0;
-  text-indent:0;
-
+  padding:20px;
   box-sizing:border-box;
-  overflow:hidden;
+
+  color:#b8b8b8; /* светло-серый текст */
+  font-size:18px;
+  line-height:1.5;
+
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
 }

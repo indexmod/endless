@@ -1,39 +1,27 @@
 const feed = document.getElementById("feed");
 
 let posts = [];
-let saveTimers = {}; // отдельный debounce на каждый пост
+let saveTimers = {};
 
 // ================= LOAD =================
 async function load() {
-  try {
-    const res = await fetch("/api/feed");
-    const json = await res.json();
+  const res = await fetch("/api/feed");
+  const json = await res.json();
 
-    let serverPosts = json.data || [];
+  let serverPosts = json.data || [];
 
-    const backup = localStorage.getItem("feed_backup");
+  const backup = localStorage.getItem("feed_backup");
 
-    if (backup) {
-      const localPosts = JSON.parse(backup);
+  if (backup) {
+    const localPosts = JSON.parse(backup);
 
-      // 💥 merge локального и серверного
-      serverPosts = serverPosts.map((p, i) => ({
-        ...p,
-        text: localPosts[i]?.text || p.text
-      }));
-    }
-
-    posts = serverPosts;
-
-  } catch (e) {
-    console.error("load failed, fallback to localStorage");
-
-    const backup = localStorage.getItem("feed_backup");
-    if (backup) {
-      posts = JSON.parse(backup);
-    }
+    serverPosts = serverPosts.map((p, i) => ({
+      ...p,
+      text: localPosts[i]?.text || p.text
+    }));
   }
 
+  posts = serverPosts;
   render();
 }
 
@@ -42,47 +30,30 @@ function render() {
   feed.innerHTML = "";
 
   posts.forEach((item, index) => {
+
     const post = document.createElement("div");
     post.className = "post";
 
-    const imageRow = document.createElement("div");
-    imageRow.className = "imageRow";
+    // IMAGE WRAP
+    const imageWrap = document.createElement("div");
+    imageWrap.className = "imageWrap";
 
-    // 💥 ОБЁРТКИ (ключевая разница)
-    const mainWrap = document.createElement("div");
-    mainWrap.className = "imageMainWrap";
+    const img = document.createElement("img");
+    img.className = "imageMain";
+    img.src = item.image;
 
-    const thumbWrap = document.createElement("div");
-    thumbWrap.className = "imageThumbWrap";
-
-    // MAIN
-    const imgMain = document.createElement("img");
-    imgMain.className = "imageMain";
-    imgMain.src = item.image;
-
-    // THUMB
-    const imgThumb = document.createElement("img");
-    imgThumb.className = "imageThumb";
-    imgThumb.src = item.image;
-
-    mainWrap.appendChild(imgMain);
-    thumbWrap.appendChild(imgThumb);
+    imageWrap.appendChild(img);
 
     // TEXT
     const text = document.createElement("textarea");
     text.className = "text";
     text.value = item.text || "";
 
-    // ================= INPUT =================
     text.addEventListener("input", (e) => {
-      const value = e.target.value;
+      posts[index].text = e.target.value;
 
-      posts[index].text = value;
-
-      // локальный бэкап
       localStorage.setItem("feed_backup", JSON.stringify(posts));
 
-      // debounce
       if (saveTimers[index]) {
         clearTimeout(saveTimers[index]);
       }
@@ -92,10 +63,7 @@ function render() {
       }, 500);
     });
 
-    imageRow.appendChild(mainWrap);
-    imageRow.appendChild(thumbWrap);
-
-    post.appendChild(imageRow);
+    post.appendChild(imageWrap);
     post.appendChild(text);
 
     feed.appendChild(post);
