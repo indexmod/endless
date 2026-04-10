@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <title>debug feed</title>
+
   <style>
     body {
       margin: 0;
@@ -35,6 +36,10 @@
       max-width: 80%;
       border-radius: 12px;
       margin-top: 20px;
+    }
+
+    .post {
+      margin-bottom: 30px;
     }
 
     .log {
@@ -74,32 +79,43 @@ async function send() {
     body: JSON.stringify({ image: url })
   })
 
-  log.textContent = "saved → loading feed..."
+  input.value = ""
 
   load()
+}
+
+function render(feed) {
+  viewer.innerHTML = ""
+
+  feed.forEach(post => {
+    const wrap = document.createElement('div')
+    wrap.className = "post"
+
+    const img = document.createElement('img')
+    img.src = post.image
+
+    const meta = document.createElement('div')
+    meta.className = "log"
+    meta.textContent = post.id
+
+    wrap.appendChild(img)
+    wrap.appendChild(meta)
+
+    viewer.appendChild(wrap)
+  })
 }
 
 async function load() {
   const res = await fetch('/api/feed')
   const json = await res.json()
 
-  log.textContent = "feed: " + JSON.stringify(json)
+  log.textContent = "posts: " + json.data.length
 
-  viewer.innerHTML = ""
-
-  const data = json.data
-  if (!data) {
-    viewer.innerHTML = "<div class='log'>no data</div>"
-    return
-  }
-
-  const img = document.createElement('img')
-  img.src = data.image
-
-  viewer.appendChild(img)
+  render(json.data)
 }
 
 load()
+setInterval(load, 3000)
 </script>
 
 </body>
