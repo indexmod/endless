@@ -25,38 +25,35 @@ body{
   justify-content:flex-start;
 }
 
-/* блок изображений */
+
 .imageRow{
   display:flex;
   flex-direction:row;
   gap:16px;
-  align-items:flex-end; /* 💥 ключевой момент */
+  align-items:flex-end;
   height:50%;
 }
 
-/* основная картинка (с кропом сверху) */
-.imageMain{
-  flex:1;
+/* ОБА ПО 50% ШИРИНЫ */
+.imageMain,
+.imageThumb{
+  width:50%;
   height:100%;
-
-  object-fit:cover;
-  object-position:top; /* 💥 СРЕЗ НИЗА */
-
   display:block;
 }
 
-/* мини-версия (полная картинка) */
-.imageThumb{
-  width:50px;
-  height:50px;
-
+/* ОСНОВНАЯ — КРОП СВЕРХУ (обрезает низ) */
+.imageMain{
   object-fit:cover;
-  object-position:center;
+  object-position:top;
+}
 
-  flex:0 0 auto;
-
-  border:1px solid #ddd;
+/* THUMB — ПОЛНОСТЬЮ ВЛЕЗАЕТ */
+.imageThumb{
+  object-fit:contain;   /* 💥 ключевое отличие */
   background:white;
+  border:1px solid #eee;
+  box-sizing:border-box;
 }
 
 /* текст */
