@@ -34,42 +34,19 @@ function render() {
     imgThumb.src = item.image;
 
     const text = document.createElement("textarea");
-    text.className = "text";
-    text.value = item.text || "";
-    text.readOnly = true;
+text.className = "text";
+text.value = item.text || "";
 
-    imageRow.appendChild(imgMain);
-    imageRow.appendChild(imgThumb);
+/* 💥 теперь реально редактор */
+text.addEventListener("input", (e) => {
+  const newValue = e.target.value;
 
-    post.appendChild(imageRow);
-    post.appendChild(text);
+  // обновляем локально
+  posts[index].text = newValue;
 
-    feed.appendChild(post);
-  });
-}
-
-/**
- * 💥 ФОКУС ЭФФЕКТ (пространственное восприятие)
- * ближайший к центру пост становится "живым"
- */
-function setupFocus() {
-  const postsEls = [...document.querySelectorAll(".post")];
-
-  function updateFocus() {
-    const centerX = window.innerWidth / 2;
-
-    postsEls.forEach(el => {
-      const rect = el.getBoundingClientRect();
-      const elCenter = rect.left + rect.width / 2;
-
-      const distance = Math.abs(centerX - elCenter);
-
-      // нормализуем
-      const scale = Math.max(0.9, 1 - distance / 1200);
-
-      el.style.transform = `scale(${scale})`;
-      el.style.opacity = scale < 0.92 ? 0.5 : 1;
-    });
+  // 💾 локальное сохранение (чтобы не терялось)
+  localStorage.setItem("feed_backup", JSON.stringify(posts));
+});
   }
 
   window.addEventListener("scroll", updateFocus, { passive: true });
