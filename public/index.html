@@ -2,132 +2,104 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>kv paste feed</title>
-
+  <title>debug feed</title>
   <style>
     body {
       margin: 0;
       font-family: sans-serif;
       background: #0f0f10;
       color: white;
-    }
-
-    .hint {
-      position: fixed;
-      top: 10px;
-      left: 10px;
-      font-size: 12px;
-      opacity: 0.5;
-      z-index: 10;
-    }
-
-    .feed {
       display: flex;
       flex-direction: column;
+      align-items: center;
+      padding: 40px;
       gap: 20px;
-      padding: 60px 20px;
-      max-width: 800px;
-      margin: 0 auto;
     }
 
-    .post {
-      background: #1b1b1e;
-      border-radius: 14px;
-      overflow: hidden;
+    input {
+      width: 80%;
+      max-width: 600px;
       padding: 10px;
+      border-radius: 8px;
+      border: none;
     }
 
-    .post img {
-      width: 100%;
-      display: block;
-      border-radius: 10px;
+    button {
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
     }
 
-    .meta {
-      font-size: 11px;
-      opacity: 0.4;
-      margin-top: 6px;
+    img {
+      max-width: 80%;
+      border-radius: 12px;
+      margin-top: 20px;
+    }
+
+    .log {
+      font-size: 12px;
+      opacity: 0.5;
+      max-width: 600px;
       word-break: break-all;
-    }
-
-    .empty {
-      opacity: 0.3;
-      text-align: center;
-      margin-top: 100px;
     }
   </style>
 </head>
 
 <body>
 
-<div class="hint">paste image URL → saved to KV</div>
+<h3>Image Debug Feed</h3>
 
-<div id="feed" class="feed">
-  <div class="empty" id="empty">loading…</div>
-</div>
+<input id="url" placeholder="paste image URL here" />
+<button onclick="send()">send</button>
+
+<div class="log" id="log">waiting…</div>
+
+<div id="viewer"></div>
 
 <script>
-const feed = document.getElementById('feed')
-const empty = document.getElementById('empty')
+const input = document.getElementById('url')
+const log = document.getElementById('log')
+const viewer = document.getElementById('viewer')
 
-function render(data) {
-  if (!data) return
+async function send() {
+  const url = input.value.trim()
+  if (!url) return
 
-  const el = document.createElement('div')
-  el.className = 'post'
+  log.textContent = "sending: " + url
 
-  const img = document.createElement('img')
-  img.src = data.image
+  await fetch('/api/paste', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ image: url })
+  })
 
-  const meta = document.createElement('div')
-  meta.className = 'meta'
-  meta.textContent = JSON.stringify(data, null, 2)
+  log.textContent = "saved → loading feed..."
 
-  el.appendChild(img)
-  el.appendChild(meta)
-
-  feed.innerHTML = ''
-  feed.appendChild(el)
-
-  empty?.remove()
+  load()
 }
 
 async function load() {
   const res = await fetch('/api/feed')
   const json = await res.json()
 
-  render(json.data)
+  log.textContent = "feed: " + JSON.stringify(json)
+
+  viewer.innerHTML = ""
+
+  const data = json.data
+  if (!data) {
+    viewer.innerHTML = "<div class='log'>no data</div>"
+    return
+  }
+
+  const img = document.createElement('img')
+  img.src = data.image
+
+  viewer.appendChild(img)
 }
-
-async function save(image) {
-  await fetch('/api/paste', {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json'
-    },
-    body: JSON.stringify({
-      image,
-      id: Date.now()
-    })
-  })
-}
-
-document.addEventListener('paste', async (e) => {
-  const text = (e.clipboardData || window.clipboardData)
-    .getData('text')
-    .trim()
-
-  if (!text) return
-
-  if (!/^https?:\/\/.+\.(jpg|jpeg|png|gif|webp)/i.test(text) &&
-      !text.includes('picsum.photos')) return
-
-  await save(text)
-  render({ image: text, id: 'live' })
-})
 
 load()
-setInterval(load, 2000)
 </script>
 
 </body>
