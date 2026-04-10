@@ -95,9 +95,8 @@ function render() {
   });
 }
 
-// ================= SAVE =================
 async function saveToServer(post) {
-  await fetch("/api/update", {
+  const res = await fetch("/api/update", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -107,11 +106,12 @@ async function saveToServer(post) {
       text: post.text
     })
   });
-}
 
   if (!res.ok) {
     throw new Error("save failed");
   }
+
+  return await res.json();
 }
 
 // ================= INIT =================
