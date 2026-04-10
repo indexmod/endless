@@ -8,8 +8,13 @@ async function load() {
 
   posts = json.data || [];
 
+  // восстановление из localStorage
+  const backup = localStorage.getItem("feed_backup");
+  if (backup) {
+    posts = JSON.parse(backup);
+  }
+
   render();
-  setupFocus();
 }
 
 function render() {
@@ -18,41 +23,35 @@ function render() {
   posts.forEach((item, index) => {
     const post = document.createElement("div");
     post.className = "post";
-    post.dataset.index = index;
 
     const imageRow = document.createElement("div");
     imageRow.className = "imageRow";
 
-    // MAIN IMAGE (срез снизу через CSS object-position)
     const imgMain = document.createElement("img");
     imgMain.className = "imageMain";
     imgMain.src = item.image;
 
-    // THUMB (полная версия)
     const imgThumb = document.createElement("img");
     imgThumb.className = "imageThumb";
     imgThumb.src = item.image;
 
     const text = document.createElement("textarea");
-text.className = "text";
-text.value = item.text || "";
+    text.className = "text";
+    text.value = item.text || "";
 
-/* 💥 теперь реально редактор */
-text.addEventListener("input", (e) => {
-  const newValue = e.target.value;
+    text.addEventListener("input", (e) => {
+      posts[index].text = e.target.value;
+      localStorage.setItem("feed_backup", JSON.stringify(posts));
+    });
 
-  // обновляем локально
-  posts[index].text = newValue;
+    imageRow.appendChild(imgMain);
+    imageRow.appendChild(imgThumb);
 
-  // 💾 локальное сохранение (чтобы не терялось)
-  localStorage.setItem("feed_backup", JSON.stringify(posts));
-});
-  }
+    post.appendChild(imageRow);
+    post.appendChild(text);
 
-  window.addEventListener("scroll", updateFocus, { passive: true });
-  window.addEventListener("resize", updateFocus);
-
-  updateFocus();
+    feed.appendChild(post);
+  });
 }
 
 load();
