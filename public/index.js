@@ -1,22 +1,43 @@
 const feed = document.getElementById("feed");
 
 let posts = [];
+let saveTimers = {}; // отдельный debounce на каждый пост
 
+// ================= LOAD =================
 async function load() {
-  const res = await fetch("/api/feed");
-  const json = await res.json();
+  try {
+    const res = await fetch("/api/feed");
+    const json = await res.json();
 
-  posts = json.data || [];
+    let serverPosts = json.data || [];
 
-  // восстановление из localStorage
-  const backup = localStorage.getItem("feed_backup");
-  if (backup) {
-    posts = JSON.parse(backup);
+    const backup = localStorage.getItem("feed_backup");
+
+    if (backup) {
+      const localPosts = JSON.parse(backup);
+
+      // 💥 merge локального и серверного
+      serverPosts = serverPosts.map((p, i) => ({
+        ...p,
+        text: localPosts[i]?.text || p.text
+      }));
+    }
+
+    posts = serverPosts;
+
+  } catch (e) {
+    console.error("load failed, fallback to localStorage");
+
+    const backup = localStorage.getItem("feed_backup");
+    if (backup) {
+      posts = JSON.parse(backup);
+    }
   }
 
   render();
 }
 
+// ================= RENDER =================
 function render() {
   feed.innerHTML = "";
 
@@ -39,9 +60,23 @@ function render() {
     text.className = "text";
     text.value = item.text || "";
 
+    // ================= INPUT =================
     text.addEventListener("input", (e) => {
-      posts[index].text = e.target.value;
+      const value = e.target.value;
+
+      posts[index].text = value;
+
+      // 💥 мгновенный локальный бэкап
       localStorage.setItem("feed_backup", JSON.stringify(posts));
+
+      // 💥 debounce на конкретный пост
+      if (saveTimers[index]) {
+        clearTimeout(saveTimers[index]);
+      }
+
+      saveTimers[index] = setTimeout(() => {
+        saveToServer(posts[index]);
+      }, 500);
     });
 
     imageRow.appendChild(imgMain);
@@ -54,4 +89,20 @@ function render() {
   });
 }
 
+// ================= SAVE =================
+async function saveToServer(post) {
+  try {
+    await fetch("/api/post/update", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(post)
+    });
+  } catch (e) {
+    console.error("save failed", e);
+  }
+}
+
+// ================= INIT =================
 load();
