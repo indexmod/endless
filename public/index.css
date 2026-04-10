@@ -1,0 +1,41 @@
+body{
+  margin:0;
+  font-family:"Helvetica Neue", Helvetica, Arial, sans-serif;
+  background:white;
+  color:black;
+  overflow-x:auto;
+  overflow-y:hidden;
+}
+
+.feed{
+  display:flex;
+  flex-direction:row;
+  width:max-content;
+}
+
+.post{
+  width:100vw;
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+
+/* 50/50 split */
+.image{
+  height:50vh;
+  width:100%;
+  object-fit:cover;
+  border-radius:0;
+}
+
+.text{
+  height:50vh;
+  width:100%;
+  border:none;
+  outline:none;
+  resize:none;
+  font-size:20px;
+  font-family:inherit;
+  padding:20px;
+  box-sizing:border-box;
+}
