@@ -1,14 +1,14 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
   "name": "endless",
+  "main": "worker.js",
   "compatibility_date": "2026-04-09",
-  "observability": {
-    "enabled": true
-  },
   "assets": {
     "directory": "public"
   },
-  "compatibility_flags": [
-    "nodejs_compat"
+  "kv_namespaces": [
+    {
+      "binding": "DB",
+      "id": "e97a6ea650144667aeeb55e318c2e6af"
+    }
   ]
 }
