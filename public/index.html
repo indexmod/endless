@@ -1,16 +1,15 @@
-const indexHTML = `
+function getIndexHTML() {
+  return `
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8"/>
 <title>feed</title>
-
 <style>
 body{
   margin:0;
-  font-family: Helvetica, Arial, sans-serif;
+  font-family:Helvetica;
   background:white;
-  color:black;
   overflow-x:auto;
   overflow-y:hidden;
 }
@@ -23,65 +22,54 @@ body{
   width:max-content;
 }
 
-.post{
-  width:400px;
-  flex:0 0 auto;
-}
+.post{width:400px;flex:0 0 auto}
 
-img{
-  width:100%;
-  border-radius:10px;
-}
+img{width:100%;border-radius:10px}
 
 textarea{
   width:100%;
   height:120px;
   font-size:20px;
-  font-family: Helvetica, Arial, sans-serif;
+  font-family:Helvetica;
   border:none;
   outline:none;
-  resize:none;
-  margin-top:10px;
 }
 </style>
 </head>
 
 <body>
-
 <div class="feed" id="feed"></div>
 
 <script>
-
 async function load(){
-  const res = await fetch('/api/feed')
-  const json = await res.json()
+  const res=await fetch('/api/feed')
+  const json=await res.json()
 
-  const feed = document.getElementById('feed')
-  feed.innerHTML = ""
+  const feed=document.getElementById('feed')
+  feed.innerHTML=""
 
-  json.data.forEach(post => {
+  json.data.forEach(p=>{
+    const el=document.createElement('div')
+    el.className="post"
 
-    const el = document.createElement('div')
-    el.className = "post"
+    const img=document.createElement('img')
+    img.src=p.image
 
-    const img = document.createElement('img')
-    img.src = post.image
-
-    const ta = document.createElement('textarea')
-    ta.maxLength = 500
-    ta.value = post.text
+    const ta=document.createElement('textarea')
+    ta.maxLength=500
+    ta.value=p.text
 
     el.appendChild(img)
     el.appendChild(ta)
-
     feed.appendChild(el)
   })
 }
 
 load()
-setInterval(load, 3000)
-
+setInterval(load,3000)
 </script>
 
 </body>
 </html>
+`;
+}
