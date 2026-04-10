@@ -1,0 +1,107 @@
+body{
+  margin:0;
+  background:#111214;
+  color:#e6e6e6;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* контейнер */
+.moderator{
+  max-width:700px;
+  margin:0 auto;
+  padding:60px 20px;
+
+  display:flex;
+  flex-direction:column;
+  gap:30px;
+}
+
+/* карточка поста */
+.modItem{
+  background:#1a1b1e;
+  border-radius:18px;
+  padding:18px;
+
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+
+  transition: all 0.2s ease;
+}
+
+/* hover — очень мягкий */
+.modItem:hover{
+  box-shadow:0 0 0 1px rgba(255,255,255,0.06);
+}
+
+/* изображение */
+.modItem img{
+  width:100%;
+  max-height:200px;
+  object-fit:cover;
+  border-radius:12px;
+}
+
+/* текст */
+.modText{
+  color:#b8b8b8;
+  font-size:14px;
+  line-height:1.5;
+}
+
+/* зона действий */
+.modActions{
+  display:flex;
+  justify-content:flex-end;
+  padding-top:10px;
+}
+
+/* delete кнопка — с воздухом */
+.modDelete{
+  padding:10px 16px;
+
+  border:none;
+  border-radius:12px;
+
+  background:#2a2b2f;
+  color:#aaa;
+
+  font-size:13px;
+
+  cursor:pointer;
+
+  transition: all 0.2s ease;
+}
+
+/* hover */
+.modDelete:hover{
+  background:#3a2a2a;
+  color:#ff6b6b;
+}
+
+/* active */
+.modDelete:active{
+  transform:scale(0.96);
+}
+
+/* кнопка назад */
+.back{
+  text-align:center;
+  margin-top:20px;
+}
+
+.back button{
+  padding:12px 20px;
+
+  border:none;
+  border-radius:14px;
+
+  background:#2a2b2f;
+  color:#e6e6e6;
+
+  cursor:pointer;
+}
+
+.back button:hover{
+  background:#34353a;
+}
