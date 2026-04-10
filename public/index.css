@@ -14,53 +14,58 @@ body{
   gap:120px;
   padding:60px;
   width:max-content;
-  align-items:flex-end; /* выравнивание по нижнему краю */
+  align-items:flex-end;
 }
 
-/* объект поста */
+/* пост */
 .post{
   width:80vw;
   height:80vh;
+
   display:flex;
   flex-direction:column;
   justify-content:flex-start;
+
+  gap:10px; /* 💥 ВСЕГДА 10px между внутренними контейнерами */
 }
 
-/* блок двух изображений */
+/* блок изображений */
 .imageRow{
   display:flex;
   flex-direction:row;
-  gap:16px;
-  align-items:flex-end; /* 💥 ВАЖНО: вниз */
+  gap:10px; /* 💥 между main и thumb */
+  align-items:flex-end;
   height:50%;
 }
 
-/* ОБА блока строго 50/50 */
-.imageMain,
-.imageThumb{
-  width:50%;
-  height:100%;
-  display:block;
-}
-
-/* MAIN — художественный кроп + ЧБ */
+/* MAIN */
 .imageMain{
+  height:100%;
+  width:auto;
+
   object-fit:cover;
   object-position:top;
-  filter:grayscale(1); /* 💥 Ч/Б */
+
+  display:block;
+  filter:grayscale(1);
 }
 
-/* THUMB — полный образ, но уменьшен по высоте */
+/* THUMB — ровно 50% по высоте от MAIN */
 .imageThumb{
-  height:75%;              /* 💥 -25% высоты */
+  height:50%;        /* 💥 ключевое правило */
+  width:auto;
+
   object-fit:contain;
-  background:transparent;  /* убираем визуальную плашку */
-  border:none;             /* убираем рамку */
+
+  display:block;
+
+  background:transparent;
+  border:none;
   box-shadow:none;
   outline:none;
-  box-sizing:border-box;
 }
 
+/* текст */
 .text{
   height:50%;
   width:100%;
@@ -69,11 +74,15 @@ body{
   outline:none;
   resize:none;
 
-  font-size:20px;
+  font-size:25px;
+  font-weight:700;
+  font-family:"Helvetica Neue", Helvetica, Arial, sans-serif;
   line-height:1.4;
 
-  padding:0;              /* 💥 УБРАЛИ ВСЁ */
-  margin:0;               /* 💥 на всякий */
+  padding:0;          /* 💥 никаких внутренних отступов */
+  margin:0;
+
+  text-indent:0;      /* 💥 первая буква строго по левому краю */
   box-sizing:border-box;
 
   overflow:hidden;
