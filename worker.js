@@ -1,121 +1,21 @@
-function indexHTML() {
-  return `
-  <html>
-    <body>
-      <h1>INDEX OK</h1>
-    </body>
-  </html>`;
-}
-
-function adminHTML() {
-  return `
-  <html>
-    <body>
-      <h1>ADMIN OK</h1>
-    </body>
-  </html>`;
-}
-
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
 
-    try {
+    // ======================
+    // STATIC
+    // ======================
+    if (url.pathname === "/" || url.pathname === "/admin") {
+      return env.ASSETS.fetch(req);
+    }
 
-      // ======================
-      // STATIC
-      // ======================
-      if (url.pathname === "/" || url.pathname === "/admin") {
-        return env.ASSETS?.fetch(req);
-      }
-
-      // ======================
-      // DB SAFE WRAPPER
-      // ======================
-      const getFeed = async () => {
-        try {
-          const raw = await env.DB?.get("feed");
-          return raw ? JSON.parse(raw) : [];
-        } catch (e) {
-          return [];
-        }
-      };
-
-      const saveFeed = async (feed) => {
-        try {
-          await env.DB?.put("feed", JSON.stringify(feed.slice(0, 50)));
-        } catch (e) {
-          console.log("DB WRITE ERROR:", e);
-        }
-      };
-
-      // ======================
-      // FEED
-      // ======================
-      if (url.pathname === "/api/feed") {
-        return Response.json({
-          ok: true,
-          data: await getFeed()
-        });
-      }
-
-      // ======================
-      // ADD
-      // ======================
-      if (url.pathname === "/api/paste") {
-        const body = await req.json();
-
-        const feed = await getFeed();
-
-        feed.unshift({
-          id: Date.now(),
-          image: body.image || "",
-          text: body.text || ""
-        });
-
-        await saveFeed(feed);
-
-        return Response.json({ ok: true });
-      }
-
-      // ======================
-      // UPDATE
-      // ======================
-      if (url.pathname === "/api/update") {
-        const body = await req.json();
-
-        let feed = await getFeed();
-
-        feed = feed.map(p =>
-          p.id === body.id ? { ...p, text: body.text } : p
-        );
-
-        await saveFeed(feed);
-
-        return Response.json({ ok: true });
-      }
-
-      // ======================
-      // DELETE
-      // ======================
-      if (url.pathname === "/api/delete") {
-        const body = await req.json();
-
-        let feed = await getFeed();
-
-        feed = feed.filter(p => p.id !== body.id);
-
-        await saveFeed(feed);
-
-        return Response.json({ ok: true });
-      }
-
-      return new Response("Not found", { status: 404 });
-
-    } catch (e) {
+    // ======================
+    // HARD CHECK DB
+    // ======================
+    if (!env.DB) {
       return new Response(
         JSON.stringify({
-          error: e?.message || String(e)
+          error: "DB NOT BOUND"
         }),
         {
           status: 500,
@@ -123,5 +23,84 @@ export default {
         }
       );
     }
+
+    // ======================
+    // DB LAYER
+    // ======================
+    const getFeed = async () => {
+      const raw = await env.DB.get("feed");
+      return raw ? JSON.parse(raw) : [];
+    };
+
+    const saveFeed = async (feed) => {
+      await env.DB.put("feed", JSON.stringify(feed.slice(0, 50)));
+    };
+
+    // ======================
+    // FEED
+    // ======================
+    if (url.pathname === "/api/feed") {
+      return Response.json({
+        data: await getFeed()
+      });
+    }
+
+    // ======================
+    // ADD
+    // ======================
+    if (url.pathname === "/api/paste") {
+      const body = await req.json();
+
+      const feed = await getFeed();
+
+      const post = {
+        id: Date.now(),
+        image: body.image || "",
+        text: body.text || ""
+      };
+
+      feed.unshift(post);
+
+      await saveFeed(feed);
+
+      return Response.json({
+        ok: true,
+        created: post
+      });
+    }
+
+    // ======================
+    // UPDATE
+    // ======================
+    if (url.pathname === "/api/update") {
+      const body = await req.json();
+
+      let feed = await getFeed();
+
+      feed = feed.map(p =>
+        p.id === body.id ? { ...p, text: body.text } : p
+      );
+
+      await saveFeed(feed);
+
+      return Response.json({ ok: true });
+    }
+
+    // ======================
+    // DELETE
+    // ======================
+    if (url.pathname === "/api/delete") {
+      const body = await req.json();
+
+      let feed = await getFeed();
+
+      feed = feed.filter(p => p.id !== body.id);
+
+      await saveFeed(feed);
+
+      return Response.json({ ok: true });
+    }
+
+    return new Response("Not found", { status: 404 });
   }
 };
