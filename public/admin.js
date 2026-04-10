@@ -4,39 +4,74 @@ document.addEventListener("DOMContentLoaded", () => {
   const counter = document.getElementById("counter");
   const sendBtn = document.getElementById("sendBtn");
   const root = document.getElementById("adminList");
+  const lastPost = document.getElementById("lastPost");
 
-  // safety checks
-  if (!imgInput || !textInput || !counter || !sendBtn || !root) {
-    console.error("ADMIN INIT FAILED: missing elements");
+  if (!imgInput || !textInput || !counter || !sendBtn || !root || !lastPost) {
+    console.error("ADMIN INIT FAILED");
     return;
   }
 
-  // counter
+  // ================= COUNTER =================
   textInput.addEventListener("input", () => {
     counter.textContent = `${textInput.value.length} / 500`;
   });
 
-  // send handler
+  // ================= SEND =================
   sendBtn.addEventListener("click", async () => {
     const payload = {
-      image: imgInput.value,
-      text: textInput.value
+      image: imgInput.value.trim(),
+      text: textInput.value.trim()
     };
 
-    await fetch("/api/paste", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(payload)
-    });
+    if (!payload.image) return;
 
-    imgInput.value = "";
-    textInput.value = "";
-    counter.textContent = "0 / 500";
+    try {
+      const res = await fetch("/api/paste", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(payload)
+      });
 
-    loadAdmin();
+      if (!res.ok) throw new Error("POST FAILED");
+
+      const json = await res.json();
+
+      // очистка
+      imgInput.value = "";
+      textInput.value = "";
+      counter.textContent = "0 / 500";
+
+      // показать последний пост сразу
+      renderLast(json.post);
+
+      // обновить список
+      loadAdmin();
+
+    } catch (e) {
+      console.error("SEND ERROR:", e);
+    }
   });
 
-  // load feed
+  // ================= LAST POST =================
+  function renderLast(post){
+    lastPost.innerHTML = "";
+
+    const card = document.createElement("div");
+    card.className = "adminItem";
+
+    const img = document.createElement("img");
+    img.src = post.image;
+
+    const text = document.createElement("div");
+    text.textContent = post.text;
+
+    card.appendChild(img);
+    card.appendChild(text);
+
+    lastPost.appendChild(card);
+  }
+
+  // ================= LOAD =================
   async function loadAdmin() {
     try {
       const res = await fetch("/api/feed");
@@ -46,13 +81,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
       json.data.forEach(post => {
         const row = document.createElement("div");
-        row.style.border = "1px solid #000";
-        row.style.padding = "10px";
-        row.style.marginBottom = "10px";
+        row.className = "adminItem";
 
         const img = document.createElement("img");
         img.src = post.image;
-        img.style.width = "120px";
 
         const text = document.createElement("div");
         text.textContent = post.text;
@@ -60,7 +92,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const btn = document.createElement("button");
         btn.textContent = "delete";
 
-        btn.addEventListener("click", async () => {
+        btn.onclick = async () => {
           await fetch("/api/delete", {
             method: "POST",
             headers: { "content-type": "application/json" },
@@ -68,7 +100,7 @@ document.addEventListener("DOMContentLoaded", () => {
           });
 
           loadAdmin();
-        });
+        };
 
         row.appendChild(img);
         row.appendChild(text);
@@ -82,6 +114,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // init
+  // ================= INIT =================
   loadAdmin();
 });

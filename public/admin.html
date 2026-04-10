@@ -3,7 +3,9 @@
 <head>
 <meta charset="utf-8"/>
 <title>Панелька</title>
+
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='42' fill='%237CFF00'/%3E%3C/svg%3E">
+
 <link rel="stylesheet" href="/admin.css">
 </head>
 
@@ -11,15 +13,26 @@
 
 <div class="panel">
 
-<input id="img" placeholder="image url"/>
+  <input id="img" placeholder="image url"/>
 
-<textarea id="text" maxlength="500"></textarea>
+  <textarea id="text" maxlength="500"></textarea>
 
-<div id="counter">0 / 500</div>
+  <div id="counter">0 / 500</div>
 
-<button id="sendBtn">send</button>
+  <button id="sendBtn">send</button>
 
 </div>
+
+<!-- последний пост -->
+<div id="lastPost"></div>
+
+<!-- список -->
+<div id="adminList"></div>
+
+<!-- переход -->
+<a href="/" class="endlessBtn">
+  <button>Endless</button>
+</a>
 
 <script src="/admin.js" defer></script>
 
