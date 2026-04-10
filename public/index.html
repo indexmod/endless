@@ -1,121 +1,86 @@
+const indexHTML = `
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8" />
-  <title>debug feed</title>
+<meta charset="utf-8"/>
+<title>feed</title>
 
-  <style>
-    body {
-      margin: 0;
-      font-family: sans-serif;
-      background: #0f0f10;
-      color: white;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 40px;
-      gap: 20px;
-    }
+<style>
+body{
+  margin:0;
+  font-family: Helvetica, Arial, sans-serif;
+  background:white;
+  color:black;
+  overflow-x:auto;
+  overflow-y:hidden;
+}
 
-    input {
-      width: 80%;
-      max-width: 600px;
-      padding: 10px;
-      border-radius: 8px;
-      border: none;
-    }
+.feed{
+  display:flex;
+  flex-direction:row;
+  gap:40px;
+  padding:40px;
+  width:max-content;
+}
 
-    button {
-      padding: 10px 20px;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
-    }
+.post{
+  width:400px;
+  flex:0 0 auto;
+}
 
-    img {
-      max-width: 80%;
-      border-radius: 12px;
-      margin-top: 20px;
-    }
+img{
+  width:100%;
+  border-radius:10px;
+}
 
-    .post {
-      margin-bottom: 30px;
-    }
-
-    .log {
-      font-size: 12px;
-      opacity: 0.5;
-      max-width: 600px;
-      word-break: break-all;
-    }
-  </style>
+textarea{
+  width:100%;
+  height:120px;
+  font-size:20px;
+  font-family: Helvetica, Arial, sans-serif;
+  border:none;
+  outline:none;
+  resize:none;
+  margin-top:10px;
+}
+</style>
 </head>
 
 <body>
 
-<h3>Image Debug Feed</h3>
-
-<input id="url" placeholder="paste image URL here" />
-<button onclick="send()">send</button>
-
-<div class="log" id="log">waiting…</div>
-
-<div id="viewer"></div>
+<div class="feed" id="feed"></div>
 
 <script>
-const input = document.getElementById('url')
-const log = document.getElementById('log')
-const viewer = document.getElementById('viewer')
 
-async function send() {
-  const url = input.value.trim()
-  if (!url) return
+async function load(){
+  const res = await fetch('/api/feed')
+  const json = await res.json()
 
-  log.textContent = "sending: " + url
+  const feed = document.getElementById('feed')
+  feed.innerHTML = ""
 
-  await fetch('/api/paste', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ image: url })
-  })
+  json.data.forEach(post => {
 
-  input.value = ""
-
-  load()
-}
-
-function render(feed) {
-  viewer.innerHTML = ""
-
-  feed.forEach(post => {
-    const wrap = document.createElement('div')
-    wrap.className = "post"
+    const el = document.createElement('div')
+    el.className = "post"
 
     const img = document.createElement('img')
     img.src = post.image
 
-    const meta = document.createElement('div')
-    meta.className = "log"
-    meta.textContent = post.id
+    const ta = document.createElement('textarea')
+    ta.maxLength = 500
+    ta.value = post.text
 
-    wrap.appendChild(img)
-    wrap.appendChild(meta)
+    el.appendChild(img)
+    el.appendChild(ta)
 
-    viewer.appendChild(wrap)
+    feed.appendChild(el)
   })
-}
-
-async function load() {
-  const res = await fetch('/api/feed')
-  const json = await res.json()
-
-  log.textContent = "posts: " + json.data.length
-
-  render(json.data)
 }
 
 load()
 setInterval(load, 3000)
+
 </script>
 
 </body>
