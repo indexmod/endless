@@ -1,33 +1,83 @@
 body{
   margin:0;
-  font-family:"Helvetica Neue", Helvetica, Arial, sans-serif;
-  background:white;
-  color:black;
+  background:#111214;
+  color:#e6e6e6;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
 }
 
+/* контейнер панели */
 .panel{
   display:flex;
   flex-direction:column;
-  gap:10px;
+  gap:20px;
+
   padding:40px;
   max-width:600px;
+
+  margin:0 auto;
 }
 
-input, textarea{
-  font-size:16px;
-  padding:10px;
-  border:1px solid black;
-  border-radius:0;
-  font-family:inherit;
+/* карточка формы (мягкое окно) */
+.panel > *{
+  background:#1a1b1e;
+  border-radius:14px;
+  padding:14px;
+  box-sizing:border-box;
 }
 
+/* inputs + textarea */
+input,
 textarea{
-  height:120px;
+  width:100%;
+
+  font-size:16px;
+  line-height:1.4;
+
+  border:none;
+  outline:none;
+  resize:none;
+
+  background:transparent;
+  color:#b8b8b8;
+
+  font-family: inherit;
 }
 
+/* textarea высота */
+textarea{
+  height:140px;
+}
+
+/* focus эффект */
+input:focus,
+textarea:focus{
+  box-shadow:0 0 0 1px #666 inset;
+}
+
+/* кнопка */
 button{
-  padding:10px;
-  border:1px solid black;
-  background:white;
+  padding:12px 14px;
+
+  border:none;
+  border-radius:14px;
+
+  background:#2a2b2f;
+  color:#e6e6e6;
+
+  font-family: inherit;
+  font-size:14px;
+
   cursor:pointer;
+
+  transition: all 0.2s ease;
+}
+
+/* hover */
+button:hover{
+  background:#34353a;
+}
+
+/* active */
+button:active{
+  transform:scale(0.98);
 }

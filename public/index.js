@@ -8,20 +8,27 @@ async function load() {
   const res = await fetch("/api/feed");
   const json = await res.json();
 
-  let serverPosts = json.data || [];
+  const serverPosts = json.data || [];
 
   const backup = localStorage.getItem("feed_backup");
 
   if (backup) {
     const localPosts = JSON.parse(backup);
 
-    serverPosts = serverPosts.map((p, i) => ({
-      ...p,
-      text: localPosts[i]?.text || p.text
-    }));
+    // 💥 safer merge by id (ВАЖНО)
+    posts = serverPosts.map((p) => {
+      const local = localPosts.find(lp => lp.id === p.id);
+
+      return {
+        ...p,
+        text: local?.text ?? p.text
+      };
+    });
+
+  } else {
+    posts = serverPosts;
   }
 
-  posts = serverPosts;
   render();
 }
 
@@ -34,7 +41,7 @@ function render() {
     const post = document.createElement("div");
     post.className = "post";
 
-    // IMAGE WRAP
+    // IMAGE
     const imageWrap = document.createElement("div");
     imageWrap.className = "imageWrap";
 
@@ -50,16 +57,34 @@ function render() {
     text.value = item.text || "";
 
     text.addEventListener("input", (e) => {
-      posts[index].text = e.target.value;
+      const value = e.target.value;
 
+      posts[index].text = value;
+
+      // 💾 local backup
       localStorage.setItem("feed_backup", JSON.stringify(posts));
 
-      if (saveTimers[index]) {
-        clearTimeout(saveTimers[index]);
-      }
+      // ✨ UI state
+      text.classList.add("dirty");
+      text.classList.remove("saved");
 
-      saveTimers[index] = setTimeout(() => {
-        saveToServer(posts[index]);
+      // debounce
+      clearTimeout(saveTimers[index]);
+
+      saveTimers[index] = setTimeout(async () => {
+        try {
+          await saveToServer(posts[index]);
+
+          text.classList.remove("dirty");
+          text.classList.add("saved");
+
+          setTimeout(() => {
+            text.classList.remove("saved");
+          }, 800);
+
+        } catch (e) {
+          console.error("save failed", e);
+        }
       }, 500);
     });
 
@@ -72,16 +97,19 @@ function render() {
 
 // ================= SAVE =================
 async function saveToServer(post) {
-  try {
-    await fetch("/api/post/update", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(post)
-    });
-  } catch (e) {
-    console.error("save failed", e);
+  const res = await fetch("/api/post/update", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      id: post.id,     // 💥 КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ
+      text: post.text
+    })
+  });
+
+  if (!res.ok) {
+    throw new Error("save failed");
   }
 }
 
