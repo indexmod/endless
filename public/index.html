@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <title>kv paste feed</title>
+
   <style>
     body {
       margin: 0;
@@ -56,6 +57,7 @@
     }
   </style>
 </head>
+
 <body>
 
 <div class="hint">paste image URL → saved to KV</div>
@@ -68,39 +70,45 @@
 const feed = document.getElementById('feed')
 const empty = document.getElementById('empty')
 
-function render(post) {
+function render(data) {
+  if (!data) return
+
   const el = document.createElement('div')
   el.className = 'post'
 
   const img = document.createElement('img')
-  img.src = post.image
+  img.src = data.image
 
   const meta = document.createElement('div')
   meta.className = 'meta'
-  meta.textContent = post.id
+  meta.textContent = JSON.stringify(data, null, 2)
 
   el.appendChild(img)
   el.appendChild(meta)
 
-  feed.prepend(el)
+  feed.innerHTML = ''
+  feed.appendChild(el)
+
+  empty?.remove()
 }
 
 async function load() {
   const res = await fetch('/api/feed')
-  const posts = await res.json()
+  const json = await res.json()
 
-  empty?.remove()
-
-  posts.reverse().forEach(render)
+  render(json.data)
 }
 
 async function save(image) {
-  await fetch('/api/post', {
+  await fetch('/api/paste', {
     method: 'POST',
     headers: {
       'content-type': 'application/json'
     },
-    body: JSON.stringify({ image })
+    body: JSON.stringify({
+      image,
+      id: Date.now()
+    })
   })
 }
 
@@ -111,13 +119,15 @@ document.addEventListener('paste', async (e) => {
 
   if (!text) return
 
-  if (!/^https?:\/\/.+\.(jpg|jpeg|png|gif|webp)/i.test(text)) return
+  if (!/^https?:\/\/.+\.(jpg|jpeg|png|gif|webp)/i.test(text) &&
+      !text.includes('picsum.photos')) return
 
   await save(text)
   render({ image: text, id: 'live' })
 })
 
 load()
+setInterval(load, 2000)
 </script>
 
 </body>
