@@ -48,14 +48,27 @@ function render() {
     const imageRow = document.createElement("div");
     imageRow.className = "imageRow";
 
+    // 💥 ОБЁРТКИ (ключевая разница)
+    const mainWrap = document.createElement("div");
+    mainWrap.className = "imageMainWrap";
+
+    const thumbWrap = document.createElement("div");
+    thumbWrap.className = "imageThumbWrap";
+
+    // MAIN
     const imgMain = document.createElement("img");
     imgMain.className = "imageMain";
     imgMain.src = item.image;
 
+    // THUMB
     const imgThumb = document.createElement("img");
     imgThumb.className = "imageThumb";
     imgThumb.src = item.image;
 
+    mainWrap.appendChild(imgMain);
+    thumbWrap.appendChild(imgThumb);
+
+    // TEXT
     const text = document.createElement("textarea");
     text.className = "text";
     text.value = item.text || "";
@@ -66,10 +79,10 @@ function render() {
 
       posts[index].text = value;
 
-      // 💥 мгновенный локальный бэкап
+      // локальный бэкап
       localStorage.setItem("feed_backup", JSON.stringify(posts));
 
-      // 💥 debounce на конкретный пост
+      // debounce
       if (saveTimers[index]) {
         clearTimeout(saveTimers[index]);
       }
@@ -79,8 +92,8 @@ function render() {
       }, 500);
     });
 
-    imageRow.appendChild(imgMain);
-    imageRow.appendChild(imgThumb);
+    imageRow.appendChild(mainWrap);
+    imageRow.appendChild(thumbWrap);
 
     post.appendChild(imageRow);
     post.appendChild(text);
