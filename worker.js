@@ -1,80 +1,125 @@
+function indexHTML() {
+  return `
+  <html>
+    <body>
+      <h1>INDEX OK</h1>
+    </body>
+  </html>`;
+}
+
+function adminHTML() {
+  return `
+  <html>
+    <body>
+      <h1>ADMIN OK</h1>
+    </body>
+  </html>`;
+}
+
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
 
-    // ======================
-    // INDEX / ADMIN
-    // ======================
-    if (url.pathname === "/" || url.pathname === "/admin") {
-      return env.ASSETS.fetch(req);
-    }
+    try {
 
-    // ======================
-    // GET FEED
-    // ======================
-    if (url.pathname === "/api/feed") {
-      const raw = await env.DB.get("feed");
-      return Response.json({ data: raw ? JSON.parse(raw) : [] });
-    }
+      // ======================
+      // INDEX
+      // ======================
+      if (url.pathname === "/") {
+        return new Response(indexHTML(), {
+          headers: { "content-type": "text/html; charset=utf-8" }
+        });
+      }
 
-    // ======================
-    // ADD POST
-    // ======================
-    if (url.pathname === "/api/paste") {
-      const body = await req.json();
+      // ======================
+      // ADMIN
+      // ======================
+      if (url.pathname === "/admin") {
+        return new Response(adminHTML(), {
+          headers: { "content-type": "text/html; charset=utf-8" }
+        });
+      }
 
-      const raw = await env.DB.get("feed");
-      const feed = raw ? JSON.parse(raw) : [];
-
-      const post = {
-        id: Date.now(),
-        image: body.image || "",
-        text: body.text || ""
+      // ======================
+      // SAFE DB HELPER
+      // ======================
+      const getFeed = async () => {
+        if (!env.DB) return [];
+        const raw = await env.DB.get("feed");
+        try {
+          return raw ? JSON.parse(raw) : [];
+        } catch {
+          return [];
+        }
       };
 
-      feed.unshift(post);
+      const saveFeed = async (feed) => {
+        if (!env.DB) return;
+        await env.DB.put("feed", JSON.stringify(feed.slice(0, 50)));
+      };
 
-      await env.DB.put("feed", JSON.stringify(feed.slice(0, 50)));
+      // ======================
+      // API: FEED
+      // ======================
+      if (url.pathname === "/api/feed") {
+        return Response.json({ data: await getFeed() });
+      }
 
-      return Response.json({ ok: true });
-    }
+      // ======================
+      // API: ADD
+      // ======================
+      if (url.pathname === "/api/paste") {
+        const body = await req.json();
+        const feed = await getFeed();
 
-    // ======================
-    // UPDATE POST (LIVE EDIT)
-    // ======================
-    if (url.pathname === "/api/update") {
-      const body = await req.json();
+        feed.unshift({
+          id: Date.now(),
+          image: body.image || "",
+          text: body.text || ""
+        });
 
-      const raw = await env.DB.get("feed");
-      let feed = raw ? JSON.parse(raw) : [];
+        await saveFeed(feed);
 
-      feed = feed.map(p =>
-        p.id === body.id
-          ? { ...p, text: body.text }
-          : p
+        return Response.json({ ok: true });
+      }
+
+      // ======================
+      // API: UPDATE
+      // ======================
+      if (url.pathname === "/api/update") {
+        const body = await req.json();
+        let feed = await getFeed();
+
+        feed = feed.map(p =>
+          p.id === body.id ? { ...p, text: body.text } : p
+        );
+
+        await saveFeed(feed);
+
+        return Response.json({ ok: true });
+      }
+
+      // ======================
+      // API: DELETE
+      // ======================
+      if (url.pathname === "/api/delete") {
+        const body = await req.json();
+        let feed = await getFeed();
+
+        feed = feed.filter(p => p.id !== body.id);
+
+        await saveFeed(feed);
+
+        return Response.json({ ok: true });
+      }
+
+      return new Response("Not found", { status: 404 });
+
+    } catch (e) {
+      return new Response(
+        "Worker crash: " + (e?.message || String(e)),
+        { status: 500 }
       );
-
-      await env.DB.put("feed", JSON.stringify(feed));
-
-      return Response.json({ ok: true });
     }
-
-    // ======================
-    // DELETE POST
-    // ======================
-    if (url.pathname === "/api/delete") {
-      const body = await req.json();
-
-      const raw = await env.DB.get("feed");
-      let feed = raw ? JSON.parse(raw) : [];
-
-      feed = feed.filter(p => p.id !== body.id);
-
-      await env.DB.put("feed", JSON.stringify(feed));
-
-      return Response.json({ ok: true });
-    }
-
-    return new Response("Not found", { status: 404 });
   }
 };
