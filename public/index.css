@@ -31,7 +31,7 @@ body{
   display:flex;
   flex-direction:row;
   gap:16px;
-  align-items:flex-start; /* фиксируем верхнюю линию */
+  align-items:flex-end; /* 💥 ВАЖНО: вниз */
   height:50%;
 }
 
@@ -61,7 +61,6 @@ body{
   box-sizing:border-box;
 }
 
-/* текстовая зона */
 .text{
   height:50%;
   width:100%;
@@ -73,7 +72,8 @@ body{
   font-size:20px;
   line-height:1.4;
 
-  padding:20px;
+  padding:0;              /* 💥 УБРАЛИ ВСЁ */
+  margin:0;               /* 💥 на всякий */
   box-sizing:border-box;
 
   overflow:hidden;
