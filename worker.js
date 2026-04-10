@@ -23,53 +23,48 @@ export default {
     try {
 
       // ======================
-      // INDEX
+      // STATIC
       // ======================
-      if (url.pathname === "/") {
-        return new Response(indexHTML(), {
-          headers: { "content-type": "text/html; charset=utf-8" }
-        });
+      if (url.pathname === "/" || url.pathname === "/admin") {
+        return env.ASSETS?.fetch(req);
       }
 
       // ======================
-      // ADMIN
-      // ======================
-      if (url.pathname === "/admin") {
-        return new Response(adminHTML(), {
-          headers: { "content-type": "text/html; charset=utf-8" }
-        });
-      }
-
-      // ======================
-      // SAFE DB HELPER
+      // DB SAFE WRAPPER
       // ======================
       const getFeed = async () => {
-        if (!env.DB) return [];
-        const raw = await env.DB.get("feed");
         try {
+          const raw = await env.DB?.get("feed");
           return raw ? JSON.parse(raw) : [];
-        } catch {
+        } catch (e) {
           return [];
         }
       };
 
       const saveFeed = async (feed) => {
-        if (!env.DB) return;
-        await env.DB.put("feed", JSON.stringify(feed.slice(0, 50)));
+        try {
+          await env.DB?.put("feed", JSON.stringify(feed.slice(0, 50)));
+        } catch (e) {
+          console.log("DB WRITE ERROR:", e);
+        }
       };
 
       // ======================
-      // API: FEED
+      // FEED
       // ======================
       if (url.pathname === "/api/feed") {
-        return Response.json({ data: await getFeed() });
+        return Response.json({
+          ok: true,
+          data: await getFeed()
+        });
       }
 
       // ======================
-      // API: ADD
+      // ADD
       // ======================
       if (url.pathname === "/api/paste") {
         const body = await req.json();
+
         const feed = await getFeed();
 
         feed.unshift({
@@ -84,10 +79,11 @@ export default {
       }
 
       // ======================
-      // API: UPDATE
+      // UPDATE
       // ======================
       if (url.pathname === "/api/update") {
         const body = await req.json();
+
         let feed = await getFeed();
 
         feed = feed.map(p =>
@@ -100,10 +96,11 @@ export default {
       }
 
       // ======================
-      // API: DELETE
+      // DELETE
       // ======================
       if (url.pathname === "/api/delete") {
         const body = await req.json();
+
         let feed = await getFeed();
 
         feed = feed.filter(p => p.id !== body.id);
@@ -117,8 +114,13 @@ export default {
 
     } catch (e) {
       return new Response(
-        "Worker crash: " + (e?.message || String(e)),
-        { status: 500 }
+        JSON.stringify({
+          error: e?.message || String(e)
+        }),
+        {
+          status: 500,
+          headers: { "content-type": "application/json" }
+        }
       );
     }
   }
