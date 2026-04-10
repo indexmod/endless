@@ -7,42 +7,62 @@ body{
   overflow-y:hidden;
 }
 
-/* Лента */
 .feed{
   display:flex;
   flex-direction:row;
-  gap:120px;                 /* 💨 большой воздух между постами */
+  gap:120px;
   padding:60px;
   width:max-content;
-  align-items:center;
+  align-items:flex-end; /* 💥 ключ: выравнивание по нижнему краю */
 }
 
-/* Пост = фиксированная "галерейная единица" */
+/* сам пост */
 .post{
-  flex:0 0 auto;
   width:80vw;
   height:80vh;
-
   display:flex;
   flex-direction:column;
-
   justify-content:flex-start;
 }
 
-/* Картинка = верхняя половина */
-.image{
-  width:100%;
+/* блок изображений */
+.imageRow{
+  display:flex;
+  flex-direction:row;
+  gap:16px;
+  align-items:flex-end; /* 💥 ключевой момент */
   height:50%;
+}
 
-  object-fit:cover;          /* галерейное заполнение */
-  border-radius:0;
+/* основная картинка (с кропом сверху) */
+.imageMain{
+  flex:1;
+  height:100%;
+
+  object-fit:cover;
+  object-position:top; /* 💥 СРЕЗ НИЗА */
+
   display:block;
 }
 
-/* Текст = нижняя половина */
+/* мини-версия (полная картинка) */
+.imageThumb{
+  width:50px;
+  height:50px;
+
+  object-fit:cover;
+  object-position:center;
+
+  flex:0 0 auto;
+
+  border:1px solid #ddd;
+  background:white;
+}
+
+/* текст */
 .text{
-  width:100%;
   height:50%;
+  width:100%;
 
   border:none;
   outline:none;
@@ -54,5 +74,5 @@ body{
   padding:20px;
   box-sizing:border-box;
 
-  overflow:hidden;           /* ❗ без скролла */
+  overflow:hidden;
 }
