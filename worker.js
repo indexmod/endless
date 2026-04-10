@@ -3,20 +3,11 @@ export default {
     const url = new URL(req.url);
 
     // ======================
-    // STATIC
-    // ======================
-    if (url.pathname === "/" || url.pathname === "/admin") {
-      return env.ASSETS.fetch(req);
-    }
-
-    // ======================
-    // HARD CHECK DB
+    // DB GUARD
     // ======================
     if (!env.DB) {
       return new Response(
-        JSON.stringify({
-          error: "DB NOT BOUND"
-        }),
+        JSON.stringify({ error: "DB NOT BOUND" }),
         {
           status: 500,
           headers: { "content-type": "application/json" }
@@ -28,29 +19,37 @@ export default {
     // DB LAYER
     // ======================
     const getFeed = async () => {
-      const raw = await env.DB.get("feed");
-      return raw ? JSON.parse(raw) : [];
+      try {
+        const raw = await env.DB.get("feed");
+        return raw ? JSON.parse(raw) : [];
+      } catch (e) {
+        return [];
+      }
     };
 
     const saveFeed = async (feed) => {
-      await env.DB.put("feed", JSON.stringify(feed.slice(0, 50)));
+      try {
+        await env.DB.put("feed", JSON.stringify(feed.slice(0, 50)));
+      } catch (e) {
+        console.log("DB ERROR:", e);
+      }
     };
 
     // ======================
-    // FEED
+    // API: FEED
     // ======================
     if (url.pathname === "/api/feed") {
       return Response.json({
+        ok: true,
         data: await getFeed()
       });
     }
 
     // ======================
-    // ADD
+    // API: ADD
     // ======================
     if (url.pathname === "/api/paste") {
       const body = await req.json();
-
       const feed = await getFeed();
 
       const post = {
@@ -60,21 +59,16 @@ export default {
       };
 
       feed.unshift(post);
-
       await saveFeed(feed);
 
-      return Response.json({
-        ok: true,
-        created: post
-      });
+      return Response.json({ ok: true, post });
     }
 
     // ======================
-    // UPDATE
+    // API: UPDATE
     // ======================
     if (url.pathname === "/api/update") {
       const body = await req.json();
-
       let feed = await getFeed();
 
       feed = feed.map(p =>
@@ -87,11 +81,10 @@ export default {
     }
 
     // ======================
-    // DELETE
+    // API: DELETE
     // ======================
     if (url.pathname === "/api/delete") {
       const body = await req.json();
-
       let feed = await getFeed();
 
       feed = feed.filter(p => p.id !== body.id);
@@ -101,6 +94,24 @@ export default {
       return Response.json({ ok: true });
     }
 
-    return new Response("Not found", { status: 404 });
+    // ======================
+    // STATIC ROUTING FIX
+    // ======================
+    if (url.pathname === "/") {
+      return env.ASSETS.fetch(
+        new Request(new URL("/index.html", req.url), req)
+      );
+    }
+
+    if (url.pathname === "/admin") {
+      return env.ASSETS.fetch(
+        new Request(new URL("/admin.html", req.url), req)
+      );
+    }
+
+    // ======================
+    // fallback static files (/admin.js, /index.js etc)
+    // ======================
+    return env.ASSETS.fetch(req);
   }
 };
