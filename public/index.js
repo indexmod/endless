@@ -1,53 +1,83 @@
-function render() {
-  if (!Array.isArray(posts)) {
-    console.error("posts is broken:", posts);
-    return;
-  }
+const feed = document.getElementById("feed");
 
-  feed.innerHTML = "";
+let posts = [];
+let saveTimers = {};
 
-  const sorted = [...posts]
-    .filter(p => p && typeof p === "object")
-    .sort((a, b) => {
-      return (Number(b.createdAt) || 0) - (Number(a.createdAt) || 0);
+// ================= LOAD =================
+async function load() {
+  const res = await fetch("/api/feed");
+  const json = await res.json();
+
+  const serverPosts = json.data || [];
+
+  const backup = localStorage.getItem("feed_backup");
+
+  if (backup) {
+    const localPosts = JSON.parse(backup);
+
+    posts = serverPosts.map((p) => {
+      const local = localPosts.find(lp => lp.id === p.id);
+
+      return {
+        ...p,
+        text: local?.text ?? p.text,
+        createdAt: p.createdAt || p.id // fallback (ВАЖНО для сортировки)
+      };
     });
 
-  const total = sorted.length;
+  } else {
+    posts = serverPosts.map(p => ({
+      ...p,
+      createdAt: p.createdAt || p.id
+    }));
+  }
+
+  render();
+}
+
+// ================= RENDER =================
+function render() {
+  feed.innerHTML = "";
+
+  // 🔥 СОРТИРОВКА: СТАРЫЕ → НОВЫЕ
+  const sorted = [...posts].sort((a, b) => {
+    return (a.createdAt || 0) - (b.createdAt || 0);
+  });
 
   sorted.forEach((item, index) => {
-
-    if (!item) return;
 
     const post = document.createElement("div");
     post.className = "post";
 
+    // ================= IMAGE =================
     const imageWrap = document.createElement("div");
     imageWrap.className = "imageWrap";
 
     const img = document.createElement("img");
     img.className = "imageMain";
-
-    // 🔥 защита
-    img.src = item?.image || "";
+    img.src = item.image;
 
     imageWrap.appendChild(img);
 
+    // ================= BADGE (ОБРАТНЫЙ ОТСЧЁТ) =================
     const badge = document.createElement("div");
     badge.className = "index-badge";
-    badge.textContent = String(total - index).padStart(2, "0");
+
+    // 🔥 самый старый = 1
+    badge.textContent = String(index + 1).padStart(2, "0");
 
     imageWrap.appendChild(badge);
 
+    // ================= TEXT =================
     const text = document.createElement("textarea");
     text.className = "text";
-    text.value = item?.text || "";
+    text.value = item.text || "";
 
     text.addEventListener("input", (e) => {
-
       const value = e.target.value;
 
-      const p = posts.find(p => p?.id === item?.id);
-      if (!p || !item?.id) return;
+      const p = posts.find(p => p.id === item.id);
+      if (!p) return;
 
       p.text = value;
 
@@ -75,9 +105,33 @@ function render() {
       }, 500);
     });
 
+    // ================= APPEND =================
     post.appendChild(imageWrap);
     post.appendChild(text);
 
     feed.appendChild(post);
   });
 }
+
+// ================= SAVE =================
+async function saveToServer(post) {
+  const res = await fetch("/api/update", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      id: post.id,
+      text: post.text
+    })
+  });
+
+  if (!res.ok) {
+    throw new Error("save failed");
+  }
+
+  return await res.json();
+}
+
+// ================= INIT =================
+load();
