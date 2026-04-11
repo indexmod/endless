@@ -71,7 +71,7 @@ function render() {
   textareas = {};
 
   // 💥 НОВЫЕ СВЕРХУ
-  posts.forEach((item) => {
+  [...posts].reverse().forEach((item) => {
 
     const post = document.createElement("div");
     post.className = "post";
