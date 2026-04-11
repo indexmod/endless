@@ -23,29 +23,23 @@ body{
   width:max-content;
 
   box-sizing:border-box;
-  align-items:stretch;
 
-  scroll-snap-type: x mandatory; /* 🔥 ключ */
-  overflow-x:auto;
-  overflow-y:hidden;
+  align-items:center; /* важно */
 }
 
 /* ===== POST (ФИКС ЭКРАНА) ===== */
 
 .post{
-  width:80vw;
-  max-width:900px;
-
-  height:calc(100dvh - 40px);
-
   display:flex;
   flex-direction:column;
   gap:16px;
 
-  overflow:hidden;
+  height:calc(100dvh - 40px);
 
-  scroll-snap-align: start; /* 🔥 ключ */
-  flex: 0 0 auto;           /* важно для snap */
+  width:fit-content;   /* 🔥 ключ */
+  max-width:90vw;
+
+  overflow:hidden;
 }
 
 /* ===== IMAGE ===== */
