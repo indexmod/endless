@@ -55,7 +55,7 @@ body {
 	will-change: transform;
 }
 
-/* ===== IMAGE ===== */
+/* ===== IMAGE WRAP ===== */
 
 .imageWrap {
 	width: 100%;
@@ -67,11 +67,15 @@ body {
 	background: transparent;
 
 	display: flex;
-	justify-content: center;
-	align-items: center;
+
+	/* 🔥 ВАЖНО: выравнивание влево */
+	justify-content: flex-start;
+	align-items: flex-start;
 
 	position: relative;
 }
+
+/* ===== IMAGE ===== */
 
 .imageMain {
 	height: 100%;
@@ -136,11 +140,12 @@ body {
 	box-shadow: 0 0 0 1px #2ecc71 inset;
 }
 
-/* ===== INDEX BADGE (ONLY ONE SYSTEM) ===== */
+/* ===== INDEX BADGE ===== */
 
 .index-badge {
 	position: absolute;
 
+	/* 🔥 строго 5px от краёв */
 	bottom: 5px;
 	left: 5px;
 

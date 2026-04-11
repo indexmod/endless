@@ -21,7 +21,7 @@ async function load() {
       return {
         ...p,
         text: local?.text ?? p.text,
-        createdAt: p.createdAt || p.id // fallback (ВАЖНО для сортировки)
+        createdAt: p.createdAt || p.id
       };
     });
 
@@ -39,17 +39,19 @@ async function load() {
 function render() {
   feed.innerHTML = "";
 
-  // 🔥 СОРТИРОВКА: СТАРЫЕ → НОВЫЕ
+  // 🔥 сортировка: старые → новые (НЕ ТРОГАЕМ ПОРЯДОК ДАННЫХ)
   const sorted = [...posts].sort((a, b) => {
     return (a.createdAt || 0) - (b.createdAt || 0);
   });
+
+  const total = sorted.length;
 
   sorted.forEach((item, index) => {
 
     const post = document.createElement("div");
     post.className = "post";
 
-    // ================= IMAGE =================
+    // ================= IMAGE WRAP =================
     const imageWrap = document.createElement("div");
     imageWrap.className = "imageWrap";
 
@@ -59,12 +61,13 @@ function render() {
 
     imageWrap.appendChild(img);
 
-    // ================= BADGE (ОБРАТНЫЙ ОТСЧЁТ) =================
+    // ================= BADGE (REVERSED INDEX) =================
     const badge = document.createElement("div");
     badge.className = "index-badge";
 
-    // 🔥 самый старый = 1
-    badge.textContent = String(index + 1).padStart(2, "0");
+    // 🔥 ОБРАТНЫЙ ОТСЧЁТ:
+    // старый = 1, новый = N
+    badge.textContent = String(total - index).padStart(2, "0");
 
     imageWrap.appendChild(badge);
 
