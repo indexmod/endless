@@ -83,7 +83,7 @@ body {
 
   padding: 18px 20px;
   box-sizing: border-box;
-  letter-spacing: 0.2px;
+  letter-spacing: 0.4px;
 
   border: none;
   outline: none;
@@ -91,7 +91,7 @@ body {
 
   color: #b8b8b8;
 
-  font-size: clamp(20px);
+  font-size: clamp(24px);
   line-height: 1.6;
 
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
