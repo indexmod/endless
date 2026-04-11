@@ -1,14 +1,22 @@
 function render() {
+  if (!Array.isArray(posts)) {
+    console.error("posts is broken:", posts);
+    return;
+  }
+
   feed.innerHTML = "";
 
-  // 🔥 НОВЫЕ СЛЕВА, СТАРЫЕ СПРАВА
-  const sorted = [...posts].sort((a, b) => {
-    return (b.createdAt || 0) - (a.createdAt || 0);
-  });
+  const sorted = [...posts]
+    .filter(p => p && typeof p === "object")
+    .sort((a, b) => {
+      return (Number(b.createdAt) || 0) - (Number(a.createdAt) || 0);
+    });
 
   const total = sorted.length;
 
   sorted.forEach((item, index) => {
+
+    if (!item) return;
 
     const post = document.createElement("div");
     post.className = "post";
@@ -18,26 +26,28 @@ function render() {
 
     const img = document.createElement("img");
     img.className = "imageMain";
-    img.src = item.image;
+
+    // 🔥 защита
+    img.src = item?.image || "";
 
     imageWrap.appendChild(img);
 
     const badge = document.createElement("div");
     badge.className = "index-badge";
-
     badge.textContent = String(total - index).padStart(2, "0");
 
     imageWrap.appendChild(badge);
 
     const text = document.createElement("textarea");
     text.className = "text";
-    text.value = item.text || "";
+    text.value = item?.text || "";
 
     text.addEventListener("input", (e) => {
+
       const value = e.target.value;
 
-      const p = posts.find(p => p.id === item.id);
-      if (!p) return;
+      const p = posts.find(p => p?.id === item?.id);
+      if (!p || !item?.id) return;
 
       p.text = value;
 
