@@ -15,18 +15,21 @@ async function load() {
   if (backup) {
     const localPosts = JSON.parse(backup);
 
-    // merge by id (safe state)
     posts = serverPosts.map((p) => {
       const local = localPosts.find(lp => lp.id === p.id);
 
       return {
         ...p,
-        text: local?.text ?? p.text
+        text: local?.text ?? p.text,
+        createdAt: p.createdAt || p.id // fallback (ВАЖНО для сортировки)
       };
     });
 
   } else {
-    posts = serverPosts;
+    posts = serverPosts.map(p => ({
+      ...p,
+      createdAt: p.createdAt || p.id
+    }));
   }
 
   render();
@@ -36,17 +39,15 @@ async function load() {
 function render() {
   feed.innerHTML = "";
 
-  posts.forEach((item, index) => {
+  // 🔥 СОРТИРОВКА: СТАРЫЕ → НОВЫЕ
+  const sorted = [...posts].sort((a, b) => {
+    return (a.createdAt || 0) - (b.createdAt || 0);
+  });
+
+  sorted.forEach((item, index) => {
 
     const post = document.createElement("div");
     post.className = "post";
-
-    // ================= BADGE =================
-    const badge = document.createElement("div");
-    badge.className = "index-badge";
-    badge.textContent = String(index + 1).padStart(2, "0");
-
-    post.appendChild(badge);
 
     // ================= IMAGE =================
     const imageWrap = document.createElement("div");
@@ -58,19 +59,20 @@ function render() {
 
     imageWrap.appendChild(img);
 
-    // ================= IMAGE BADGE (optional CSS support) =================
-    const imageBadge = document.createElement("div");
-    imageBadge.className = "index-badge image-badge";
-    imageBadge.textContent = String(index + 1).padStart(2, "0");
+    // ================= BADGE (ОБРАТНЫЙ ОТСЧЁТ) =================
+    const badge = document.createElement("div");
+    badge.className = "index-badge";
 
-    imageWrap.appendChild(imageBadge);
+    // 🔥 самый старый = 1
+    badge.textContent = String(index + 1).padStart(2, "0");
+
+    imageWrap.appendChild(badge);
 
     // ================= TEXT =================
     const text = document.createElement("textarea");
     text.className = "text";
     text.value = item.text || "";
 
-    // ================= INPUT =================
     text.addEventListener("input", (e) => {
       const value = e.target.value;
 
@@ -79,14 +81,11 @@ function render() {
 
       p.text = value;
 
-      // local backup
       localStorage.setItem("feed_backup", JSON.stringify(posts));
 
-      // UI state
       text.classList.add("dirty");
       text.classList.remove("saved");
 
-      // debounce save (by id, NOT index)
       clearTimeout(saveTimers[item.id]);
 
       saveTimers[item.id] = setTimeout(async () => {
