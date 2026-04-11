@@ -23,26 +23,32 @@ body{
   width:max-content;
 
   box-sizing:border-box;
-  align-items:flex-start;
+  align-items:stretch; /* важно */
 }
 
-/* ===== POST (главный контейнер) ===== */
+/* ===== POST (ФИКС ЭКРАНА) ===== */
 
 .post{
   width:80vw;
   max-width:900px;
 
+  height:calc(100dvh - 40px); /* ВАЖНО: ограничение экрана */
+
   display:flex;
   flex-direction:column;
   gap:16px;
 
-  height:auto;
+  overflow:hidden; /* защита от вылезания */
 }
 
 /* ===== IMAGE ===== */
 
 .imageWrap{
   width:100%;
+
+  flex: 1.2; /* image занимает больше места */
+  min-height:0;
+
   border-radius:18px;
   overflow:hidden;
   background:#1a1b1e;
@@ -52,18 +58,22 @@ body{
   justify-content:center;
 }
 
-/* ключ: изображение определяет геометрию */
+/* image не ломает layout */
 .imageMain{
   width:100%;
-  height:auto;
+  height:100%;
 
   object-fit:contain;
+  object-position:center;
+
   display:block;
 }
 
 /* ===== TEXT ===== */
 
 .text{
+  flex: 1; /* текст получает оставшееся место */
+
   width:100%;
 
   background:#1a1b1e;
@@ -81,11 +91,9 @@ body{
   font-size: clamp(16px, 2vw, 20px);
   line-height:1.55;
 
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  overflow:auto; /* если текста много — скролл внутри */
 
   caret-color:#b8b8b8;
-
-  transition: box-shadow 0.2s ease;
 }
 
 /* ===== STATES ===== */
