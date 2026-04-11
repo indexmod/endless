@@ -5,8 +5,6 @@ body {
 
 	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
-	cursor: crosshair;
-
 	overflow-x: hidden;
 	overflow-y: auto;
 
@@ -14,12 +12,9 @@ body {
 	text-size-adjust: 100%;
 }
 
-/* ===== FEED (ДОКУМЕНТНЫЙ ПОТОК) ===== */
+/* ===== LAYOUT ===== */
 
 .feed {
-	display: block; /* 💥 УБРАЛ FLEX */
-
-	width: 100%;
 	max-width: 520px;
 	margin: 0 auto;
 
@@ -31,40 +26,36 @@ body {
 /* ===== POST ===== */
 
 .post {
-	display: block; /* 💥 УБРАЛ FLEX */
-
 	width: 100%;
-
-	margin-bottom: 40px; /* вместо gap */
+	margin-bottom: 40px;
 }
 
-/* ===== IMAGE WRAP ===== */
+/* ===== IMAGE ===== */
 
 .imageWrap {
 	width: 100%;
 
 	border-radius: 18px;
+	overflow: hidden;
+
+	background: #1a1b1e;
+
 	padding: 5px;
 
 	box-sizing: border-box;
 
-	background: #1a1b1e;
-
-	overflow: hidden;
-
 	margin-bottom: 20px;
 }
-
-/* ===== IMAGE ===== */
 
 .imageMain {
 	width: 100%;
 	height: auto;
 
+	display: block;
+
 	border-radius: 12px;
 
-	display: block;
-	object-fit: contain;
+	object-fit: cover;
 }
 
 /* ===== TEXT ===== */
@@ -72,10 +63,13 @@ body {
 .text {
 	width: 100%;
 
+	min-height: 120px; /* базовая видимость 2–3 строки */
+	height: auto;
+
 	background: #1a1b1e;
 	border-radius: 18px;
 
-	padding: 18px 20px 60px 20px;
+	padding: 18px 20px 60px 20px; /* + воздух 3 строки */
 
 	box-sizing: border-box;
 
@@ -108,18 +102,4 @@ body {
 		font-size: 24px;
 		line-height: 1.75;
 	}
-}
-
-/* ===== STATES ===== */
-
-.text:focus {
-	box-shadow: 0 0 0 1px #888 inset;
-}
-
-.text.dirty {
-	box-shadow: 0 0 0 1px #666 inset;
-}
-
-.text.saved {
-	box-shadow: 0 0 0 1px #2ecc71 inset;
 }
