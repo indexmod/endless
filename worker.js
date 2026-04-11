@@ -94,18 +94,6 @@ export default {
       return Response.json({ ok: true });
     }
 
-    // =========================================================
-    // 🟢🟢🟢 ADD THIS BLOCK (DO NOT TOUCH OTHER ROUTES) 🟢🟢🟢
-    // =========================================================
-    if (url.pathname === "/") {
-    return env.ASSETS.fetch(
-      new Request(new URL("/index.html", req.url), req)
-    );
-  }
-    // =========================================================
-    // 🔴🟡 END OF NEW BLOCK (SAFE END) 🔴🟡
-    // =========================================================
-
     if (url.pathname === "/admin") {
       return env.ASSETS.fetch(
         new Request(new URL("/admin.html", req.url), req)
