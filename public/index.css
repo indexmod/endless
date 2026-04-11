@@ -63,13 +63,12 @@ body {
 .text {
 	width: 100%;
 
-	min-height: 120px; /* базовая видимость 2–3 строки */
-	height: auto;
+	min-height: 120px;
 
 	background: #1a1b1e;
 	border-radius: 18px;
 
-	padding: 18px 20px 60px 20px; /* + воздух 3 строки */
+	padding: 18px 20px 60px 20px;
 
 	box-sizing: border-box;
 
@@ -88,6 +87,9 @@ body {
 	word-wrap: break-word;
 
 	display: block;
+
+	/* 💥 КЛЮЧЕВОЕ */
+	field-sizing: content;
 }
 
 /* ===== MOBILE ===== */

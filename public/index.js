@@ -4,12 +4,6 @@ let posts = [];
 let saveTimers = {};
 let textareas = {};
 
-// ================= AUTO HEIGHT =================
-function autoResize(textarea) {
-  textarea.style.height = "auto";
-  textarea.style.height = textarea.scrollHeight + "px";
-}
-
 // ================= LOAD =================
 async function load() {
   const res = await fetch("/api/feed");
@@ -57,7 +51,6 @@ async function sync() {
           const textarea = textareas[serverPost.id];
           if (textarea && textarea.value !== serverPost.text) {
             textarea.value = serverPost.text;
-            autoResize(textarea);
           }
         }
       }
@@ -91,14 +84,10 @@ function render() {
     text.className = "text";
     text.value = item.text || "";
 
-    autoResize(text);
-
     textareas[item.id] = text;
 
     text.addEventListener("input", (e) => {
       const value = e.target.value;
-
-      autoResize(text);
 
       const target = posts.find(p => p.id === item.id);
       if (target) target.text = value;
