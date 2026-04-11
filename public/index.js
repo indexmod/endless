@@ -1,42 +1,48 @@
-? const feed = document.getElementById("feed");
+const feed = document.getElementById("feed");
 
 let posts = [];
 let saveTimers = {};
 
 // ================= LOAD =================
 async function load() {
-  const res = await fetch("/api/feed");
-  const json = await res.json();
+  try {
+    const res = await fetch("/api/feed");
+    const json = await res.json();
 
-  const serverPosts = json.data || [];
+    // универсально: поддержка и {data: []} и []
+    const serverPosts = json.data || json || [];
 
-  const backup = localStorage.getItem("feed_backup");
+    const backup = localStorage.getItem("feed_backup");
 
-  if (backup) {
-    const localPosts = JSON.parse(backup);
+    if (backup) {
+      const localPosts = JSON.parse(backup);
 
-    // 💥 safer merge by id (ВАЖНО)
-    posts = serverPosts.map((p) => {
-      const local = localPosts.find(lp => lp.id === p.id);
+      // merge по id
+      posts = serverPosts.map((p) => {
+        const local = localPosts.find(lp => lp.id === p.id);
 
-      return {
-        ...p,
-        text: local?.text ?? p.text
-      };
-    });
+        return {
+          ...p,
+          text: local?.text ?? p.text
+        };
+      });
 
-  } else {
-    posts = serverPosts;
+    } else {
+      posts = serverPosts;
+    }
+
+    render();
+
+  } catch (e) {
+    console.error("load failed", e);
   }
-
-  render();
 }
 
 // ================= RENDER =================
 function render() {
   feed.innerHTML = "";
 
-  posts.forEach((item, index) => {
+  posts.forEach((item) => {
 
     const post = document.createElement("div");
     post.className = "post";
@@ -47,7 +53,7 @@ function render() {
 
     const img = document.createElement("img");
     img.className = "imageMain";
-    img.src = item.image;
+    img.src = item.image || "";
 
     imageWrap.appendChild(img);
 
@@ -56,24 +62,28 @@ function render() {
     text.className = "text";
     text.value = item.text || "";
 
+    const id = item.id;
+
     text.addEventListener("input", (e) => {
       const value = e.target.value;
 
-      posts[index].text = value;
+      // обновляем по id (не по index!)
+      const target = posts.find(p => p.id === id);
+      if (target) target.text = value;
 
-      // 💾 local backup
+      // local backup
       localStorage.setItem("feed_backup", JSON.stringify(posts));
 
-      // ✨ UI state
+      // UI состояние
       text.classList.add("dirty");
       text.classList.remove("saved");
 
-      // debounce
-      clearTimeout(saveTimers[index]);
+      // debounce по id
+      clearTimeout(saveTimers[id]);
 
-      saveTimers[index] = setTimeout(async () => {
+      saveTimers[id] = setTimeout(async () => {
         try {
-          await saveToServer(posts[index]);
+          await saveToServer({ id, text: value });
 
           text.classList.remove("dirty");
           text.classList.add("saved");
@@ -95,16 +105,14 @@ function render() {
   });
 }
 
+// ================= SAVE =================
 async function saveToServer(post) {
   const res = await fetch("/api/update", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({
-      id: post.id,
-      text: post.text
-    })
+    body: JSON.stringify(post)
   });
 
   if (!res.ok) {
@@ -115,4 +123,4 @@ async function saveToServer(post) {
 }
 
 // ================= INIT =================
-load();
+window.addEventListener("DOMContentLoaded", load);
