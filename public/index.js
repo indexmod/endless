@@ -2,6 +2,7 @@ const feed = document.getElementById("feed");
 
 let posts = [];
 let saveTimers = {};
+let textareas = {}; // 💥 храним ссылки на DOM
 
 // ================= LOAD =================
 async function load() {
@@ -31,7 +32,7 @@ async function load() {
   render();
 }
 
-// ================= SYNC (REAL DANCING) =================
+// ================= SYNC (без перерисовки) =================
 async function sync() {
   try {
     const res = await fetch("/api/feed");
@@ -43,13 +44,19 @@ async function sync() {
       const local = posts.find(p => p.id === serverPost.id);
       if (!local) return;
 
-      // 💥 если НЕ редактируется — обновляем
+      // если не редактируется
       if (!saveTimers[serverPost.id]) {
-        local.text = serverPost.text;
+        if (local.text !== serverPost.text) {
+          local.text = serverPost.text;
+
+          // 💥 обновляем только textarea
+          const textarea = textareas[serverPost.id];
+          if (textarea && textarea.value !== serverPost.text) {
+            textarea.value = serverPost.text;
+          }
+        }
       }
     });
-
-    render();
 
   } catch (e) {
     console.error("sync failed", e);
@@ -59,6 +66,7 @@ async function sync() {
 // ================= RENDER =================
 function render() {
   feed.innerHTML = "";
+  textareas = {};
 
   posts.forEach((item, index) => {
 
@@ -80,15 +88,17 @@ function render() {
     text.className = "text";
     text.value = item.text || "";
 
+    // 💥 сохраняем ссылку
+    textareas[item.id] = text;
+
     text.addEventListener("input", (e) => {
       const value = e.target.value;
 
       posts[index].text = value;
 
-      // 💾 local backup
+      // local backup
       localStorage.setItem("feed_backup", JSON.stringify(posts));
 
-      // debounce
       clearTimeout(saveTimers[item.id]);
 
       saveTimers[item.id] = setTimeout(async () => {
@@ -104,15 +114,12 @@ function render() {
             })
           });
 
-          console.log("saved", item.id);
-
         } catch (e) {
           console.error("save failed", e);
         } finally {
-          // 💥 КЛЮЧ: освобождаем "замок редактирования"
           delete saveTimers[item.id];
         }
-      }, 500);
+      }, 400); // чуть быстрее
     });
 
     post.appendChild(imageWrap);
@@ -124,6 +131,4 @@ function render() {
 
 // ================= INIT =================
 load();
-
-// 💥 запускаем "дыхание"
 setInterval(sync, 2000);
