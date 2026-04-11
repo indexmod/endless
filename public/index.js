@@ -51,6 +51,10 @@ async function sync() {
           const textarea = textareas[serverPost.id];
           if (textarea && textarea.value !== serverPost.text) {
             textarea.value = serverPost.text;
+
+            // 🔥 авто-рост при синке
+            textarea.style.height = "auto";
+            textarea.style.height = textarea.scrollHeight + "px";
           }
         }
       }
@@ -85,10 +89,18 @@ function render() {
     text.className = "text";
     text.value = item.text || "";
 
+    // 🔥 авто-рост СРАЗУ после создания
+    text.style.height = "auto";
+    text.style.height = text.scrollHeight + "px";
+
     textareas[item.id] = text;
 
     text.addEventListener("input", (e) => {
       const value = e.target.value;
+
+      // 🔥 авто-рост при вводе
+      text.style.height = "auto";
+      text.style.height = text.scrollHeight + "px";
 
       const target = posts.find(p => p.id === item.id);
       if (target) target.text = value;
