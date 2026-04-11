@@ -94,14 +94,38 @@ export default {
       return Response.json({ ok: true });
     }
 
-    // ======================
-    // STATIC ROUTING FIX
-    // ======================
+    // =========================================================
+    // 🟢🟢🟢 ADD THIS BLOCK (DO NOT TOUCH OTHER ROUTES) 🟢🟢🟢
+    // =========================================================
     if (url.pathname === "/") {
+      const ua = req.headers.get("user-agent") || "";
+
+      const isBot =
+        ua.includes("facebookexternalhit") ||
+        ua.includes("Twitterbot") ||
+        ua.includes("LinkedInBot");
+
+      // 👉 ONLY FOR BOTS: pull OG HTML from separate worker
+      if (isBot) {
+        const ogRes = await fetch("https://endless.indexmod.press/og");
+        const html = await ogRes.text();
+
+        return new Response(html, {
+          headers: {
+            "content-type": "text/html;charset=UTF-8",
+            "cache-control": "no-cache"
+          }
+        });
+      }
+
+      // 👉 NORMAL USERS: SPA
       return env.ASSETS.fetch(
         new Request(new URL("/index.html", req.url), req)
       );
     }
+    // =========================================================
+    // 🔴🟡 END OF NEW BLOCK (SAFE END) 🔴🟡
+    // =========================================================
 
     if (url.pathname === "/admin") {
       return env.ASSETS.fetch(
@@ -110,7 +134,7 @@ export default {
     }
 
     // ======================
-    // fallback static files (/admin.js, /index.js etc)
+    // fallback static files
     // ======================
     return env.ASSETS.fetch(req);
   }
