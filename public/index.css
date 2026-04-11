@@ -77,7 +77,7 @@ body {
 .text {
 	width: 100%;
 
-	min-height: 120px; /* базовая высота */
+	min-height: 140px; /* 💥 увеличили базу (видно 2–3 строки даже пустым) */
 	height: auto;
 
 	background: #1a1b1e;
@@ -95,9 +95,11 @@ body {
 	font-size: 22px;
 	line-height: 1.6;
 
-	overflow: hidden; /* без внутреннего скролла */
-}
+	overflow: hidden;
 
+	white-space: pre-wrap; /* 💥 важно: честный перенос текста */
+	word-wrap: break-word;
+}
 /* ===== MOBILE ===== */
 
 @media (max-width: 600px) {
