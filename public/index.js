@@ -4,6 +4,19 @@ let posts = [];
 let saveTimers = {};
 let textareas = {};
 
+// ================= AUTO HEIGHT =================
+function autoResize(textarea) {
+  const lineHeight = 24; // под твой размер текста
+  const extraLines = 4;
+
+  textarea.style.height = "auto";
+
+  const base = textarea.scrollHeight;
+  const extra = lineHeight * extraLines;
+
+  textarea.style.height = (base + extra) + "px";
+}
+
 // ================= LOAD =================
 async function load() {
   const res = await fetch("/api/feed");
@@ -52,9 +65,8 @@ async function sync() {
           if (textarea && textarea.value !== serverPost.text) {
             textarea.value = serverPost.text;
 
-            // 🔥 авто-рост при синке
-            textarea.style.height = "auto";
-            textarea.style.height = textarea.scrollHeight + "px";
+            // 🔥 правильный авто-рост
+            autoResize(textarea);
           }
         }
       }
@@ -70,8 +82,8 @@ function render() {
   feed.innerHTML = "";
   textareas = {};
 
-  // 💥 НОВЫЕ СВЕРХУ
-  [...posts].reverse().forEach((item) => {
+  // 💥 УЖЕ перевёрнуты в load → просто рисуем
+  posts.forEach((item) => {
 
     const post = document.createElement("div");
     post.className = "post";
@@ -89,9 +101,8 @@ function render() {
     text.className = "text";
     text.value = item.text || "";
 
-    // 🔥 авто-рост СРАЗУ после создания
-    text.style.height = "auto";
-    text.style.height = text.scrollHeight + "px";
+    // 🔥 авто-рост сразу
+    autoResize(text);
 
     textareas[item.id] = text;
 
@@ -99,8 +110,7 @@ function render() {
       const value = e.target.value;
 
       // 🔥 авто-рост при вводе
-      text.style.height = "auto";
-      text.style.height = text.scrollHeight + "px";
+      autoResize(text);
 
       const target = posts.find(p => p.id === item.id);
       if (target) target.text = value;
