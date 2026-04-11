@@ -16,7 +16,7 @@ async function load() {
   if (backup) {
     const localPosts = JSON.parse(backup);
 
-    posts = serverPosts.map((p) => {
+    posts = [...serverPosts].reverse().map((p) => {
       const local = localPosts.find(lp => lp.id === p.id);
 
       return {
@@ -26,7 +26,7 @@ async function load() {
     });
 
   } else {
-    posts = serverPosts;
+    posts = [...serverPosts].reverse();
   }
 
   render();
@@ -71,7 +71,7 @@ function render() {
   textareas = {};
 
   // 💥 НОВЫЕ СВЕРХУ
-  [...posts].reverse().forEach((item) => {
+  posts.forEach((item) => {
 
     const post = document.createElement("div");
     post.className = "post";
