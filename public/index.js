@@ -6,7 +6,7 @@ let textareas = {};
 
 // ================= AUTO HEIGHT =================
 function autoResize(textarea) {
-  const lineHeight = 24; // под твой размер текста
+  const lineHeight = 24;
   const extraLines = 4;
 
   textarea.style.height = "auto";
@@ -29,7 +29,7 @@ async function load() {
   if (backup) {
     const localPosts = JSON.parse(backup);
 
-    posts = [...serverPosts].reverse().map((p) => {
+    posts = serverPosts.map((p) => {
       const local = localPosts.find(lp => lp.id === p.id);
 
       return {
@@ -39,7 +39,7 @@ async function load() {
     });
 
   } else {
-    posts = [...serverPosts].reverse();
+    posts = serverPosts;
   }
 
   render();
@@ -64,8 +64,6 @@ async function sync() {
           const textarea = textareas[serverPost.id];
           if (textarea && textarea.value !== serverPost.text) {
             textarea.value = serverPost.text;
-
-            // 🔥 правильный авто-рост
             autoResize(textarea);
           }
         }
@@ -82,7 +80,7 @@ function render() {
   feed.innerHTML = "";
   textareas = {};
 
-  // 💥 УЖЕ перевёрнуты в load → просто рисуем
+  // 💥 НИКАКОГО reverse — сервер уже в правильном порядке
   posts.forEach((item) => {
 
     const post = document.createElement("div");
@@ -101,7 +99,6 @@ function render() {
     text.className = "text";
     text.value = item.text || "";
 
-    // 🔥 авто-рост сразу
     autoResize(text);
 
     textareas[item.id] = text;
@@ -109,7 +106,6 @@ function render() {
     text.addEventListener("input", (e) => {
       const value = e.target.value;
 
-      // 🔥 авто-рост при вводе
       autoResize(text);
 
       const target = posts.find(p => p.id === item.id);
