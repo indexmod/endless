@@ -54,7 +54,7 @@ body {
   border-radius: 0px;
 	overflow: hidden;
 
-  background: silver;
+  background: void;
 
 	display: flex;
 	justify-content: flex-start;
