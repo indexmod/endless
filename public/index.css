@@ -30,16 +30,16 @@ body{
 /* ===== POST (ФИКС ЭКРАНА) ===== */
 
 .post{
-  display:flex;
+  display:inline-flex;
   flex-direction:column;
   gap:16px;
 
   height:calc(100dvh - 40px);
 
-  width:fit-content;   /* 🔥 ключ */
+  width:fit-content;
   max-width:90vw;
 
-  overflow:hidden;
+  align-items:flex-start; /* 🔥 ключ: левое выравнивание */
 }
 
 /* ===== IMAGE ===== */
@@ -47,7 +47,7 @@ body{
 .imageWrap{
   width:100%;
 
-  flex: 1;
+  flex:1;
   min-height:0;
 
   border-radius:18px;
@@ -56,24 +56,28 @@ body{
   background:#1a1b1e;
 
   display:flex;
-  justify-content:center;
+
+  justify-content:flex-start; /* 🔥 было center */
   align-items:center;
+  padding-right:0;
+
 }
 
 .imageMain{
   height:100%;
-  width:auto;        /* 🔥 ключ */
+  width:auto;
 
   object-fit:contain;
+
   display:block;
+
+  border-radius:18px; /* 🔥 ключ: переносим сюда */
 }
 
 /* ===== TEXT ===== */
 
 .text{
-  flex: 1;
-
-  width:100%; /* теперь = ширине image */
+  width:100%; /* всегда равен imageWrap */
 
   background:#1a1b1e;
   border-radius:18px;
