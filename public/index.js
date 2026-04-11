@@ -2,7 +2,7 @@ const feed = document.getElementById("feed");
 
 let posts = [];
 let saveTimers = {};
-let textareas = {}; // 💥 храним ссылки на DOM
+let textareas = {};
 
 // ================= LOAD =================
 async function load() {
@@ -32,7 +32,7 @@ async function load() {
   render();
 }
 
-// ================= SYNC (без перерисовки) =================
+// ================= SYNC =================
 async function sync() {
   try {
     const res = await fetch("/api/feed");
@@ -44,12 +44,10 @@ async function sync() {
       const local = posts.find(p => p.id === serverPost.id);
       if (!local) return;
 
-      // если не редактируется
       if (!saveTimers[serverPost.id]) {
         if (local.text !== serverPost.text) {
           local.text = serverPost.text;
 
-          // 💥 обновляем только textarea
           const textarea = textareas[serverPost.id];
           if (textarea && textarea.value !== serverPost.text) {
             textarea.value = serverPost.text;
@@ -68,12 +66,12 @@ function render() {
   feed.innerHTML = "";
   textareas = {};
 
-  posts.forEach((item, index) => {
+  // 💥 НОВЫЕ СВЕРХУ
+  [...posts].reverse().forEach((item) => {
 
     const post = document.createElement("div");
     post.className = "post";
 
-    // IMAGE
     const imageWrap = document.createElement("div");
     imageWrap.className = "imageWrap";
 
@@ -83,20 +81,18 @@ function render() {
 
     imageWrap.appendChild(img);
 
-    // TEXT
     const text = document.createElement("textarea");
     text.className = "text";
     text.value = item.text || "";
 
-    // 💥 сохраняем ссылку
     textareas[item.id] = text;
 
     text.addEventListener("input", (e) => {
       const value = e.target.value;
 
-      posts[index].text = value;
+      const target = posts.find(p => p.id === item.id);
+      if (target) target.text = value;
 
-      // local backup
       localStorage.setItem("feed_backup", JSON.stringify(posts));
 
       clearTimeout(saveTimers[item.id]);
@@ -119,7 +115,7 @@ function render() {
         } finally {
           delete saveTimers[item.id];
         }
-      }, 400); // чуть быстрее
+      }, 400);
     });
 
     post.appendChild(imageWrap);
