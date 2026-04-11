@@ -6,8 +6,7 @@ body {
 	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
 
 	cursor: crosshair;
-
-	overflow-x: hidden; /* 💥 ВАЖНО */
+	overflow-x: auto;
 	overflow-y: hidden;
 
 	-webkit-text-size-adjust: 100%;
@@ -24,7 +23,6 @@ body {
 	padding: 20px;
 
 	height: 100dvh;
-
 	width: max-content;
 
 	box-sizing: border-box;
@@ -33,9 +31,8 @@ body {
 
 	scroll-snap-type: x mandatory;
 	-webkit-overflow-scrolling: touch;
-
-	will-change: transform; /* 💥 стабилизация рендера */
 }
+
 /* ===== POST ===== */
 
 .post {
@@ -45,10 +42,8 @@ body {
 
 	height: calc(100dvh - 40px);
 
-	width: 85vw;      /* 💥 фикс вместо fit-content */
-	max-width: 85vw;
-
-	min-width: 85vw;  /* 💥 важно: не сжиматься */
+	width: fit-content;
+	max-width: 90vw;
 
 	align-items: flex-start;
 
@@ -59,6 +54,7 @@ body {
 	transform: translateZ(0);
 	will-change: transform;
 }
+
 /* ===== IMAGE WRAP ===== */
 
 .imageWrap {
@@ -82,12 +78,14 @@ body {
 /* ===== IMAGE ===== */
 
 .imageMain {
-	width: 100%;
 	height: 100%;
+	width: auto;
 
-	object-fit: cover;
+	object-fit: contain;
 
 	display: block;
+
+	border-radius: 0px;
 }
 
 /* ===== TEXT ===== */
