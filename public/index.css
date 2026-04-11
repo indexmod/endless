@@ -51,14 +51,14 @@ body {
 	height: 60%;
 	/* 🔥 ключ */
 
-  border-radius: 18px;
+  border-radius: 0px;
 	overflow: hidden;
 
-	background: #1a1b1e;
+  background: silver;
 
 	display: flex;
 	justify-content: flex-start;
-	align-items: center;
+  align-items: left;
 }
 
 .imageMain {
