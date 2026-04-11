@@ -31,6 +31,31 @@ async function load() {
   render();
 }
 
+// ================= SYNC (REAL DANCING) =================
+async function sync() {
+  try {
+    const res = await fetch("/api/feed");
+    const json = await res.json();
+
+    const serverPosts = json.data || [];
+
+    serverPosts.forEach(serverPost => {
+      const local = posts.find(p => p.id === serverPost.id);
+      if (!local) return;
+
+      // 💥 если НЕ редактируется — обновляем
+      if (!saveTimers[serverPost.id]) {
+        local.text = serverPost.text;
+      }
+    });
+
+    render();
+
+  } catch (e) {
+    console.error("sync failed", e);
+  }
+}
+
 // ================= RENDER =================
 function render() {
   feed.innerHTML = "";
@@ -64,9 +89,9 @@ function render() {
       localStorage.setItem("feed_backup", JSON.stringify(posts));
 
       // debounce
-      clearTimeout(saveTimers[index]);
+      clearTimeout(saveTimers[item.id]);
 
-      saveTimers[index] = setTimeout(async () => {
+      saveTimers[item.id] = setTimeout(async () => {
         try {
           await fetch("/api/update", {
             method: "POST",
@@ -74,15 +99,18 @@ function render() {
               "Content-Type": "application/json"
             },
             body: JSON.stringify({
-              id: posts[index].id,
-              text: posts[index].text
+              id: item.id,
+              text: value
             })
           });
 
-          console.log("saved", posts[index].id);
+          console.log("saved", item.id);
 
         } catch (e) {
           console.error("save failed", e);
+        } finally {
+          // 💥 КЛЮЧ: освобождаем "замок редактирования"
+          delete saveTimers[item.id];
         }
       }, 500);
     });
@@ -96,3 +124,6 @@ function render() {
 
 // ================= INIT =================
 load();
+
+// 💥 запускаем "дыхание"
+setInterval(sync, 2000);
