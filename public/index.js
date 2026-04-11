@@ -6,15 +6,8 @@ let textareas = {};
 
 // ================= AUTO HEIGHT =================
 function autoResize(textarea) {
-  const lineHeight = 24;
-  const extraLines = 4;
-
   textarea.style.height = "auto";
-
-  const base = textarea.scrollHeight;
-  const extra = lineHeight * extraLines;
-
-  textarea.style.height = (base + extra) + "px";
+  textarea.style.height = textarea.scrollHeight + "px";
 }
 
 // ================= LOAD =================
@@ -80,7 +73,6 @@ function render() {
   feed.innerHTML = "";
   textareas = {};
 
-  // 💥 НИКАКОГО reverse — сервер уже в правильном порядке
   posts.forEach((item) => {
 
     const post = document.createElement("div");
@@ -127,7 +119,6 @@ function render() {
               text: value
             })
           });
-
         } catch (e) {
           console.error("save failed", e);
         } finally {

@@ -25,7 +25,7 @@ body {
 	padding: 40px 20px;
 
 	width: 100%;
-	max-width: 520px; /* ≈ 500px колонка */
+	max-width: 520px;
 	margin: 0 auto;
 
 	box-sizing: border-box;
@@ -38,8 +38,6 @@ body {
 	flex-direction: column;
 
 	width: 100%;
-
-	position: relative;
 }
 
 /* ===== IMAGE WRAP ===== */
@@ -48,7 +46,7 @@ body {
 	width: 100%;
 
 	border-radius: 18px;
-	padding: 5px; /* внутренний отступ */
+	padding: 5px;
 
 	box-sizing: border-box;
 
@@ -56,7 +54,7 @@ body {
 
 	overflow: hidden;
 
-	margin-bottom: 20px; /* отступ до текста */
+	margin-bottom: 20px;
 }
 
 /* ===== IMAGE ===== */
@@ -65,11 +63,10 @@ body {
 	width: 100%;
 	height: auto;
 
-	border-radius: 12px; /* меньше чем контейнер */
-
-	object-fit: contain;
+	border-radius: 12px;
 
 	display: block;
+	object-fit: contain;
 }
 
 /* ===== TEXT ===== */
@@ -77,13 +74,11 @@ body {
 .text {
 	width: 100%;
 
-	min-height: 140px; /* 💥 увеличили базу (видно 2–3 строки даже пустым) */
-	height: auto;
-
 	background: #1a1b1e;
 	border-radius: 18px;
 
-	padding: 18px 20px;
+	padding: 18px 20px 60px 20px; /* 💥 воздух снизу */
+
 	box-sizing: border-box;
 
 	border: none;
@@ -97,9 +92,12 @@ body {
 
 	overflow: hidden;
 
-	white-space: pre-wrap; /* 💥 важно: честный перенос текста */
+	white-space: pre-wrap;
 	word-wrap: break-word;
+
+	display: block;
 }
+
 /* ===== MOBILE ===== */
 
 @media (max-width: 600px) {
