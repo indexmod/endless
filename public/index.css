@@ -62,7 +62,7 @@ body {
 }
 
 .imageMain {
-  height: auto;
+  height: 100%;
 	width: auto;
 
 	object-fit: contain;
