@@ -15,7 +15,7 @@ async function load() {
   if (backup) {
     const localPosts = JSON.parse(backup);
 
-    // 💥 safer merge by id (ВАЖНО)
+    // merge by id (safe state)
     posts = serverPosts.map((p) => {
       const local = localPosts.find(lp => lp.id === p.id);
 
@@ -41,7 +41,14 @@ function render() {
     const post = document.createElement("div");
     post.className = "post";
 
-    // IMAGE
+    // ================= BADGE =================
+    const badge = document.createElement("div");
+    badge.className = "index-badge";
+    badge.textContent = String(index + 1).padStart(2, "0");
+
+    post.appendChild(badge);
+
+    // ================= IMAGE =================
     const imageWrap = document.createElement("div");
     imageWrap.className = "imageWrap";
 
@@ -51,29 +58,40 @@ function render() {
 
     imageWrap.appendChild(img);
 
-    // TEXT
+    // ================= IMAGE BADGE (optional CSS support) =================
+    const imageBadge = document.createElement("div");
+    imageBadge.className = "index-badge image-badge";
+    imageBadge.textContent = String(index + 1).padStart(2, "0");
+
+    imageWrap.appendChild(imageBadge);
+
+    // ================= TEXT =================
     const text = document.createElement("textarea");
     text.className = "text";
     text.value = item.text || "";
 
+    // ================= INPUT =================
     text.addEventListener("input", (e) => {
       const value = e.target.value;
 
-      posts[index].text = value;
+      const p = posts.find(p => p.id === item.id);
+      if (!p) return;
 
-      // 💾 local backup
+      p.text = value;
+
+      // local backup
       localStorage.setItem("feed_backup", JSON.stringify(posts));
 
-      // ✨ UI state
+      // UI state
       text.classList.add("dirty");
       text.classList.remove("saved");
 
-      // debounce
-      clearTimeout(saveTimers[index]);
+      // debounce save (by id, NOT index)
+      clearTimeout(saveTimers[item.id]);
 
-      saveTimers[index] = setTimeout(async () => {
+      saveTimers[item.id] = setTimeout(async () => {
         try {
-          await saveToServer(posts[index]);
+          await saveToServer(p);
 
           text.classList.remove("dirty");
           text.classList.add("saved");
@@ -88,6 +106,7 @@ function render() {
       }, 500);
     });
 
+    // ================= APPEND =================
     post.appendChild(imageWrap);
     post.appendChild(text);
 
@@ -95,6 +114,7 @@ function render() {
   });
 }
 
+// ================= SAVE =================
 async function saveToServer(post) {
   const res = await fetch("/api/update", {
     method: "POST",
