@@ -3,7 +3,7 @@ body{
   background:#111214;
   color:#e6e6e6;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-
+  cursor: crosshair;
   overflow-x:auto;
   overflow-y:hidden;
 
@@ -23,7 +23,11 @@ body{
   width:max-content;
 
   box-sizing:border-box;
-  align-items:stretch; /* важно */
+  align-items:stretch;
+
+  scroll-snap-type: x mandatory; /* 🔥 ключ */
+  overflow-x:auto;
+  overflow-y:hidden;
 }
 
 /* ===== POST (ФИКС ЭКРАНА) ===== */
@@ -32,13 +36,16 @@ body{
   width:80vw;
   max-width:900px;
 
-  height:calc(100dvh - 40px); /* ВАЖНО: ограничение экрана */
+  height:calc(100dvh - 40px);
 
   display:flex;
   flex-direction:column;
   gap:16px;
 
-  overflow:hidden; /* защита от вылезания */
+  overflow:hidden;
+
+  scroll-snap-align: start; /* 🔥 ключ */
+  flex: 0 0 auto;           /* важно для snap */
 }
 
 /* ===== IMAGE ===== */
