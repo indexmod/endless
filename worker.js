@@ -1,23 +1,37 @@
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "https://indexmod.github.io",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type"
+};
+
+function json(data, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: {
+      "content-type": "application/json",
+      ...corsHeaders
+    }
+  });
+}
+
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
 
-    // ======================
-    // DB GUARD
-    // ======================
+    if (req.method === "OPTIONS") {
+      return new Response(null, {
+        status: 204,
+        headers: corsHeaders
+      });
+    }
+
     if (!env.DB) {
-      return new Response(
-        JSON.stringify({ error: "DB NOT BOUND" }),
-        {
-          status: 500,
-          headers: { "content-type": "application/json" }
-        }
+      return json(
+        { error: "DB NOT BOUND" },
+        500
       );
     }
 
-    // ======================
-    // DB LAYER
-    // ======================
     const getFeed = async () => {
       try {
         const raw = await env.DB.get("feed");
@@ -29,27 +43,25 @@ export default {
 
     const saveFeed = async (feed) => {
       try {
-        await env.DB.put("feed", JSON.stringify(feed.slice(0, 50)));
+        await env.DB.put(
+          "feed",
+          JSON.stringify(feed.slice(0, 50))
+        );
       } catch (e) {
         console.log("DB ERROR:", e);
       }
     };
 
-    // ======================
-    // API: FEED
-    // ======================
     if (url.pathname === "/api/feed") {
-      return Response.json({
+      return json({
         ok: true,
         data: await getFeed()
       });
     }
 
-    // ======================
-    // API: ADD
-    // ======================
     if (url.pathname === "/api/paste") {
       const body = await req.json();
+
       const feed = await getFeed();
 
       const post = {
@@ -59,50 +71,60 @@ export default {
       };
 
       feed.unshift(post);
+
       await saveFeed(feed);
 
-      return Response.json({ ok: true, post });
+      return json({
+        ok: true,
+        post
+      });
     }
 
-    // ======================
-    // API: UPDATE
-    // ======================
     if (url.pathname === "/api/update") {
       const body = await req.json();
+
       let feed = await getFeed();
 
       feed = feed.map(p =>
-        p.id === body.id ? { ...p, text: body.text } : p
+        p.id === body.id
+          ? { ...p, text: body.text }
+          : p
       );
 
       await saveFeed(feed);
 
-      return Response.json({ ok: true });
+      return json({
+        ok: true
+      });
     }
 
-    // ======================
-    // API: DELETE
-    // ======================
     if (url.pathname === "/api/delete") {
       const body = await req.json();
+
       let feed = await getFeed();
 
-      feed = feed.filter(p => p.id !== body.id);
+      feed = feed.filter(
+        p => p.id !== body.id
+      );
 
       await saveFeed(feed);
 
-      return Response.json({ ok: true });
+      return json({
+        ok: true
+      });
     }
 
     if (url.pathname === "/admin") {
       return env.ASSETS.fetch(
-        new Request(new URL("/admin.html", req.url), req)
+        new Request(
+          new URL("/admin.html", req.url),
+          req
+        )
       );
     }
 
-    // ======================
-    // fallback static files
-    // ======================
-    return env.ASSETS.fetch(req);
+    const response = await env.ASSETS.fetch(req);
+
+    return response;
   }
 };
