@@ -1,176 +1,138 @@
-body{
-  margin:0;
-  background:#111214;
-  color:#e6e6e6;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+* {
+  box-sizing: border-box;
 }
 
-/* контейнер — список, НЕ grid */
-.moderator{
-  max-width:700px;
-  margin:0 auto;
-  padding:60px 20px;
-
-  display:flex;
-  flex-direction:column;
-  gap:24px;
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
 }
 
-/* карточка */
-.modItem{
-  background:#1a1b1e;
-  border-radius:18px;
-  padding:18px;
-
-  display:flex;
-  flex-direction:column;
-  gap:14px;
-
-  transition: all 0.2s ease;
+body {
+  background: #111214;
+  color: #f2f2f2;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
-/* мягкий hover */
-.modItem:hover{
-  box-shadow:0 0 0 1px rgba(255,255,255,0.05);
+.moderator {
+  width: min(700px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 30px 0 100px;
 }
 
-/* 🖼 ПРЕВЬЮ — СДЕЛАЛИ ВИДИМЕЕ */
-.modItem img{
-  width:100%;
-  height:220px;              /* было меньше → стало заметнее */
-  object-fit:cover;
-  border-radius:14px;
+.adminItem {
+  display: flex;
+  align-items: center;
+  gap: 14px;
 
-  opacity:0.85;              /* тусклее */
-  filter:saturate(0.8) contrast(0.95);
+  min-height: 72px;
+  margin-bottom: 10px;
+  padding: 8px;
+
+  background: #1a1b1e;
+  border-radius: 12px;
 }
 
-/* текст */
-.modText{
-  color:#b8b8b8;
-  font-size:14px;
-  line-height:1.5;
+.adminPreview {
+  flex: 0 0 80px;
 
-  max-height:80px;
-  overflow:hidden;
+  width: 80px;
+  height: 60px;
+
+  object-fit: cover;
+  border-radius: 8px;
+  background: #111214;
 }
 
-/* зона действий — больше воздуха */
-.modActions{
-  display:flex;
-  justify-content:flex-end;
+.adminText {
+  flex: 1;
+  min-width: 0;
 
-  padding-top:12px;          /* 💥 воздух */
+  font-size: 15px;
+  line-height: 1.4;
+
+  color: #bbb;
+
+  overflow: hidden;
 }
 
-/* 🗑 DELETE — КРУПНЕЕ, НО ТУСКЛЕЕ */
-.modDelete{
-  padding:12px 20px;         /* больше размер */
-
-  border:none;
-  border-radius:14px;
-
-  background:#2a2b2f;
-  color:#8a8a8a;             /* тусклый */
-
-  font-size:13px;
-  letter-spacing:0.5px;
-
-  cursor:pointer;
-
-  transition: all 0.2s ease;
-
-  opacity:0.8;
+.adminActions {
+  flex: 0 0 auto;
 }
 
-/* hover — не агрессия, а акцент */
-.modDelete:hover{
-  background:#3a2a2a;
-  color:#c77;
-  opacity:1;
+.deleteBtn {
+  border: 0;
+  background: transparent;
+  color: #777;
+
+  font: inherit;
+  font-size: 13px;
+
+  cursor: pointer;
 }
 
-/* active */
-.modDelete:active{
-  transform:scale(0.97);
+.deleteBtn:hover {
+  color: #f2f2f2;
 }
 
-/* назад */
-.back{
-  text-align:center;
-  margin-top:40px;
+.deleteBtn:disabled {
+  opacity: 0.4;
+  cursor: default;
 }
 
-.back button{
-  padding:12px 20px;
-
-  border:none;
-  border-radius:14px;
-
-  background:#2a2b2f;
-  color:#e6e6e6;
-
-  cursor:pointer;
+.moderatorError {
+  color: #777;
+  padding: 20px 0;
 }
 
-.back button:hover{
-  background:#34353a;
+.back {
+  width: min(700px, calc(100% - 40px));
+  margin: 0 auto 40px;
 }
 
-.adminItem{
-  background:#1a1b1e;
-  border-radius:18px;
-  padding:16px;
+.back button {
+  width: 100%;
+  min-height: 52px;
 
-  display:flex;
-  flex-direction:column;
-  gap:12px;
+  border: 0;
+  border-radius: 14px;
+
+  background: #1a1b1e;
+  color: #f2f2f2;
+
+  font-size: 16px;
+  cursor: pointer;
 }
 
-/* 🖼 превью */
-.adminPreview{
-  width:100%;
-  height:180px;
-  object-fit:cover;
-  border-radius:14px;
+@media (max-width: 600px) {
+  .moderator {
+    width: calc(100% - 24px);
+    padding-top: 20px;
+  }
 
-  opacity:0.85;
-  filter:contrast(0.95) saturate(0.8);
-}
+  .adminItem {
+    gap: 10px;
+  }
 
-/* текст */
-.adminText{
-  color:#b8b8b8;
-  font-size:13px;
-  line-height:1.4;
+  .adminPreview {
+    flex-basis: 64px;
+    width: 64px;
+    height: 48px;
+  }
 
-  max-height:70px;
-  overflow:hidden;
-}
+  .adminText {
+    font-size: 14px;
+  }
 
-/* зона действий */
-.adminActions{
-  display:flex;
-  justify-content:flex-end;
-  padding-top:6px;
-}
-
-/* delete */
-.deleteBtn{
-  padding:10px 16px;
-
-  border:none;
-  border-radius:12px;
-
-  background:#2a2b2f;
-  color:#8a8a8a;
-
-  cursor:pointer;
-
-  transition:all 0.2s ease;
-}
-
-.deleteBtn:hover{
-  background:#3a2a2a;
-  color:#c77;
+  .back {
+    width: calc(100% - 24px);
+  }
+  .adminMapPreview {
+  flex: 0 0 80px;
+  width: 80px;
+  height: 60px;
+  overflow: hidden;
+  border-radius: 8px;
+  }
 }

@@ -1,136 +1,48 @@
-const API = "https://endless.wiki-self.workers.dev";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
 
-const list = document.getElementById("adminList");
+<title>Moderator</title>
 
-async function load() {
-  try {
-    const response = await fetch(`${API}/api/feed`);
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+>
 
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
+<link
+  rel="icon"
+  href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='42' fill='%237CFF00'/%3E%3C/svg%3E"
+>
 
-    const json = await response.json();
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  crossorigin=""
+>
 
-    list.innerHTML = "";
+<link rel="stylesheet" href="./moderator.css">
+</head>
 
-    if (!json.ok || !Array.isArray(json.data)) {
-      throw new Error("Invalid feed response");
-    }
+<body>
 
-    json.data.forEach(post => {
-      const item = document.createElement("div");
-      item.className = "adminItem";
+<div
+  class="moderator"
+  id="adminList"
+></div>
 
-      if (post.image) {
-        const image = document.createElement("img");
+<div class="back">
+  <a href="./index.html">
+    <button type="button">Endless</button>
+  </a>
+</div>
 
-        image.className = "adminPreview";
-        image.src = post.image;
-        image.alt = "";
+<script
+  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  crossorigin=""
+></script>
 
-        item.appendChild(image);
-      }
+<script src="./moderator.js" defer></script>
 
-      const text = document.createElement("div");
-
-      text.className = "adminText";
-      text.textContent =
-        post.text?.slice(0, 120) || "";
-
-      item.appendChild(text);
-
-      const actions = document.createElement("div");
-
-      actions.className = "adminActions";
-
-      const deleteBtn =
-        document.createElement("button");
-
-      deleteBtn.className = "deleteBtn";
-      deleteBtn.type = "button";
-      deleteBtn.textContent = "delete";
-
-      deleteBtn.addEventListener(
-        "click",
-        async () => {
-
-          const confirmed = confirm(
-            "Delete this post?"
-          );
-
-          if (!confirmed) {
-            return;
-          }
-
-          deleteBtn.disabled = true;
-          deleteBtn.textContent = "deleting…";
-
-          try {
-            const response =
-              await fetch(`${API}/api/delete`, {
-                method: "POST",
-
-                headers: {
-                  "Content-Type":
-                    "application/json"
-                },
-
-                body: JSON.stringify({
-                  id: post.id
-                })
-              });
-
-            if (!response.ok) {
-              throw new Error(
-                `HTTP ${response.status}`
-              );
-            }
-
-            const result =
-              await response.json();
-
-            if (!result.ok) {
-              throw new Error(
-                "Delete failed"
-              );
-            }
-
-            await load();
-
-          } catch (error) {
-
-            console.error(
-              "Delete error:",
-              error
-            );
-
-            alert(
-              "Не удалось удалить пост."
-            );
-
-            deleteBtn.disabled = false;
-            deleteBtn.textContent = "delete";
-          }
-        }
-      );
-
-      actions.appendChild(deleteBtn);
-      item.appendChild(actions);
-
-      list.appendChild(item);
-    });
-
-  } catch (error) {
-
-    console.error(
-      "Moderator feed error:",
-      error
-    );
-
-    list.innerHTML =
-      "<div class=\"moderatorError\">Не удалось загрузить ленту.</div>";
-  }
-}
-
-load();
+</body>
+</html>
