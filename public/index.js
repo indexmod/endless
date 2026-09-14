@@ -34,6 +34,11 @@ function formatLines(text) {
     .join("\n");
 }
 
+function autoGrow(textarea) {
+  textarea.style.height = "auto";
+  textarea.style.height = `${textarea.scrollHeight}px`;
+}
+
 function parseMapUrl(value) {
   const trimmedValue = value.trim();
 
@@ -317,9 +322,19 @@ function createPost(post) {
 
   article.appendChild(textarea);
 
+  /*
+   * Set the initial height to match the content.
+   */
+  autoGrow(textarea);
+
   let timer = null;
 
   textarea.addEventListener("input", () => {
+
+    /*
+     * Grow immediately when text changes.
+     */
+    autoGrow(textarea);
 
     clearTimeout(timer);
 
@@ -380,6 +395,11 @@ function createPost(post) {
       emoji +
       " " +
       after;
+
+    /*
+     * Grow immediately after adding a new line.
+     */
+    autoGrow(textarea);
 
     const cursor =
       start +
