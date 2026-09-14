@@ -1,66 +1,50 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
 <meta charset="utf-8"/>
 
-<title>Endless — Paste</title>
+<title>Панелька — Endless</title>
 
-<meta
-	name="viewport"
-	content="width=device-width, initial-scale=1.0"
-/>
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-<link
-	rel="stylesheet"
-	href="./admin.css"
-/>
+<link rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='42' fill='%237CFF00'/%3E%3C/svg%3E">
 
+<link rel="stylesheet" href="./admin.css">
 </head>
 
 <body>
 
 <div class="panel">
 
-	<input
-		id="img"
-		type="url"
-		placeholder="Paste URL — image or map"
-		autocomplete="off"
-	/>
+  <input
+    id="img"
+    type="text"
+    placeholder="Image URL or map link"
+    autocomplete="off"
+  >
 
-	<textarea
-		id="text"
-		placeholder="Write anything..."
-	></textarea>
+  <textarea
+    id="text"
+    placeholder="Text"
+  ></textarea>
 
-	<div id="counter">
-		0
-	</div>
+  <div id="counter">0 characters</div>
 
-	<button id="sendBtn">
-		Send
-	</button>
+  <button id="sendBtn" type="button">Send</button>
 
 </div>
 
-
 <div id="lastPost"></div>
 
+<div id="adminList"></div>
 
-<a
-	href="./index.html"
-	class="endlessBtn"
->
-	Endless
+<a href="./index.html" class="endlessBtn">
+  <button type="button">Endless</button>
 </a>
 
-
-<script
-	src="./admin.js"
-	defer
-></script>
+<script src="./admin.js" defer></script>
 
 </body>
 </html>

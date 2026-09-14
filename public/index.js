@@ -1,638 +1,341 @@
 const API = "https://endless.wiki-self.workers.dev";
 
-const feed = document.getElementById("feed");
+const feedElement = document.getElementById("feed");
 
-let posts = [];
-let saveTimers = {};
-let textareas = {};
-
-const USER_EMOJIS = [
-	"🐈", "🐕", "🦊", "🐼", "🐸",
-	"🐙", "🦋", "🐝", "🦄", "🐳",
-	"🌞", "🌙", "⭐", "🪐", "🌈",
-	"🍋", "🍒", "🍀", "🌵", "🌻",
-	"🎈", "🎨", "🎧", "📷", "💿"
+const emojis = [
+  "😀", "😎", "🙂", "😏", "🤓",
+  "😶", "🙃", "😌", "🫥", "🤔",
+  "👽", "🤖", "👻", "🐱", "🐶",
+  "🦊", "🐸", "🐵", "🦄", "🐼"
 ];
 
 function randomEmoji() {
-	return USER_EMOJIS[
-		Math.floor(Math.random() * USER_EMOJIS.length)
-	];
+  return emojis[Math.floor(Math.random() * emojis.length)];
 }
 
-
-/* =========================================================
-   TEXT FORMAT
-   ========================================================= */
-
-function formatAnonymousLines(text) {
-
-	return text
-		.split("\n")
-		.map(line => {
-
-			if (!line.trim()) {
-				return line;
-			}
-
-			if (/^\p{Extended_Pictographic}\s/u.test(line.trim())) {
-				return line;
-			}
-
-			return `${randomEmoji()} ${line}`;
-
-		})
-		.join("\n");
+function hasEmoji(text) {
+  return /^\p{Extended_Pictographic}/u.test(text.trim());
 }
 
+function formatLines(text) {
+  return text
+    .split("\n")
+    .map(line => {
+      if (!line.trim()) return line;
 
-function insertUserLine(textarea) {
+      const trimmed = line.trim();
 
-	const start = textarea.selectionStart;
-	const end = textarea.selectionEnd;
+      if (hasEmoji(trimmed)) {
+        return line;
+      }
 
-	const before = textarea.value.slice(0, start);
-	const after = textarea.value.slice(end);
-
-	const insertion = "\n" + randomEmoji() + " ";
-
-	textarea.value =
-		before +
-		insertion +
-		after;
-
-	const position =
-		before.length +
-		insertion.length;
-
-	textarea.selectionStart = position;
-	textarea.selectionEnd = position;
-
-	textarea.dispatchEvent(new Event("input", {
-		bubbles: true
-	}));
+      return `${randomEmoji()} ${trimmed}`;
+    })
+    .join("\n");
 }
 
+function parseMapUrl(value) {
+  try {
+    const url = new URL(value);
 
-/* =========================================================
-   MAP URL PARSER
-   ========================================================= */
+    let lat = null;
+    let lng = null;
+    let zoom = 13;
 
-function parseMapURL(value) {
+    // Google Maps
+    const googleMatch = url.pathname.match(
+      /@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)(?:,(\d+(?:\.\d+)?)z)?/
+    );
 
-	if (!value) return null;
+    if (googleMatch) {
+      lat = Number(googleMatch[1]);
+      lng = Number(googleMatch[2]);
+      zoom = Number(googleMatch[3]) || 13;
+    }
 
-	let url;
+    const q = url.searchParams.get("q");
+    const ll = url.searchParams.get("ll");
 
-	try {
-		url = new URL(value);
-	} catch {
-		return null;
-	}
+    if (!lat && q) {
+      const match = q.match(
+        /^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/
+      );
 
-	const host = url.hostname.toLowerCase();
+      if (match) {
+        lat = Number(match[1]);
+        lng = Number(match[2]);
+      }
+    }
 
-	/* Google Maps */
+    if (!lat && ll) {
+      const match = ll.match(
+        /^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/
+      );
 
-	if (
-		host.includes("google.") ||
-		host === "maps.google.com"
-	) {
+      if (match) {
+        lat = Number(match[1]);
+        lng = Number(match[2]);
+      }
+    }
 
-		const at = value.match(
-			/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/
-		);
+    // OpenStreetMap
+    const map = url.hash.match(
+      /#map=(\d+(?:\.\d+)?)\/(-?\d+(?:\.\d+)?)\/(-?\d+(?:\.\d+)?)/
+    );
 
-		if (at) {
-			return {
-				lat: Number(at[1]),
-				lon: Number(at[2]),
-				zoom: 15,
-				provider: "Google Maps"
-			};
-		}
+    if (map) {
+      zoom = Number(map[1]);
+      lat = Number(map[2]);
+      lng = Number(map[3]);
+    }
 
-		const q =
-			url.searchParams.get("q") ||
-			url.searchParams.get("ll");
+    const mlat = url.searchParams.get("mlat");
+    const mlon = url.searchParams.get("mlon");
 
-		if (q) {
+    if (!lat && mlat && mlon) {
+      lat = Number(mlat);
+      lng = Number(mlon);
+    }
 
-			const m = q.match(
-				/(-?\d+(?:\.\d+)?)[,\s]+(-?\d+(?:\.\d+)?)/
-			);
+    // Apple Maps
+    if (!lat && ll) {
+      const match = ll.match(
+        /^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/
+      );
 
-			if (m) {
-				return {
-					lat: Number(m[1]),
-					lon: Number(m[2]),
-					zoom: 15,
-					provider: "Google Maps"
-				};
-			}
-		}
-	}
+      if (match) {
+        lat = Number(match[1]);
+        lng = Number(match[2]);
+      }
+    }
 
+    // Bing Maps
+    const cp = url.searchParams.get("cp");
 
-	/* OpenStreetMap */
+    if (!lat && cp) {
+      const match = cp.match(
+        /^\s*(-?\d+(?:\.\d+)?)~(-?\d+(?:\.\d+)?)\s*$/
+      );
 
-	if (
-		host.includes("openstreetmap.")
-	) {
+      if (match) {
+        lat = Number(match[1]);
+        lng = Number(match[2]);
+      }
+    }
 
-		const map =
-			value.match(
-				/#map=(\d+(?:\.\d+)?)\/(-?\d+(?:\.\d+)?)\/(-?\d+(?:\.\d+)?)/
-			);
+    // Yandex Maps
+    if (!lat && ll && url.hostname.includes("yandex")) {
+      const match = ll.match(
+        /^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/
+      );
 
-		if (map) {
-			return {
-				zoom: Number(map[1]),
-				lat: Number(map[2]),
-				lon: Number(map[3]),
-				provider: "OpenStreetMap"
-			};
-		}
+      if (match) {
+        lng = Number(match[1]);
+        lat = Number(match[2]);
+      }
+    }
 
-		const lat =
-			url.searchParams.get("mlat");
+    if (
+      Number.isFinite(lat) &&
+      Number.isFinite(lng) &&
+      lat >= -90 &&
+      lat <= 90 &&
+      lng >= -180 &&
+      lng <= 180
+    ) {
+      return {
+        lat,
+        lng,
+        zoom
+      };
+    }
 
-		const lon =
-			url.searchParams.get("mlon");
+    return null;
 
-		if (lat && lon) {
-			return {
-				lat: Number(lat),
-				lon: Number(lon),
-				zoom: 15,
-				provider: "OpenStreetMap"
-			};
-		}
-	}
-
-
-	/* Apple Maps */
-
-	if (
-		host.includes("apple.com") ||
-		host.includes("maps.apple.com")
-	) {
-
-		const ll =
-			url.searchParams.get("ll");
-
-		if (ll) {
-
-			const m = ll.match(
-				/(-?\d+(?:\.\d+)?)[,\s]+(-?\d+(?:\.\d+)?)/
-			);
-
-			if (m) {
-				return {
-					lat: Number(m[1]),
-					lon: Number(m[2]),
-					zoom: 15,
-					provider: "Apple Maps"
-				};
-			}
-		}
-	}
-
-
-	/* Bing Maps */
-
-	if (host.includes("bing.com")) {
-
-		const cp =
-			url.searchParams.get("cp");
-
-		if (cp) {
-
-			const m = cp.match(
-				/(-?\d+(?:\.\d+)?)[~\s]+(-?\d+(?:\.\d+)?)/
-			);
-
-			if (m) {
-				return {
-					lat: Number(m[1]),
-					lon: Number(m[2]),
-					zoom: 15,
-					provider: "Bing Maps"
-				};
-			}
-		}
-	}
-
-
-	/* Yandex Maps */
-
-	if (host.includes("yandex.")) {
-
-		const ll =
-			url.searchParams.get("ll");
-
-		if (ll) {
-
-			const m = ll.match(
-				/(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/
-			);
-
-			if (m) {
-				return {
-					lon: Number(m[1]),
-					lat: Number(m[2]),
-					zoom: 15,
-					provider: "Yandex Maps"
-				};
-			}
-		}
-	}
-
-
-	return null;
+  } catch {
+    return null;
+  }
 }
 
+function createMap(container, location) {
+  if (typeof L === "undefined") {
+    return;
+  }
 
-/* =========================================================
-   MAP RENDER
-   ========================================================= */
+  const map = L.map(container, {
+    scrollWheelZoom: true
+  }).setView(
+    [location.lat, location.lng],
+    location.zoom
+  );
 
-function createMap(container, data, originalURL) {
+  L.tileLayer(
+    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    {
+      attribution: "&copy; OpenStreetMap contributors",
+      maxZoom: 19
+    }
+  ).addTo(map);
 
-	const map = L.map(container, {
-		zoomControl: true,
-		scrollWheelZoom: true
-	}).setView(
-		[data.lat, data.lon],
-		data.zoom || 15
-	);
+  L.marker([location.lat, location.lng]).addTo(map);
 
-	L.tileLayer(
-		"https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-		{
-			maxZoom: 19,
-			attribution:
-				'© OpenStreetMap contributors'
-		}
-	).addTo(map);
-
-	L.marker([
-		data.lat,
-		data.lon
-	])
-	.addTo(map)
-	.bindPopup(data.provider)
-	.openPopup();
-
-	return map;
+  setTimeout(() => {
+    map.invalidateSize();
+  }, 100);
 }
 
+function createPost(post) {
+  const article = document.createElement("article");
+  article.className = "post";
 
-/* =========================================================
-   LOAD
-   ========================================================= */
+  if (post.image) {
+    const mapLocation = parseMapUrl(post.image);
 
-async function load() {
+    if (mapLocation) {
+      const mapWrap = document.createElement("div");
+      mapWrap.className = "mapWrap";
 
-	try {
+      const mapElement = document.createElement("div");
+      mapElement.className = "map";
 
-		const res =
-			await fetch(`${API}/api/feed`);
+      mapWrap.appendChild(mapElement);
+      article.appendChild(mapWrap);
 
-		const json =
-			await res.json();
+      createMap(mapElement, mapLocation);
 
-		const serverPosts =
-			json.data || [];
+    } else {
+      const imageWrap = document.createElement("div");
+      imageWrap.className = "imageWrap";
 
-		const backup =
-			localStorage.getItem("feed_backup");
+      const image = document.createElement("img");
+      image.className = "imageMain";
+      image.src = post.image;
+      image.alt = "";
 
-		if (backup) {
+      imageWrap.appendChild(image);
+      article.appendChild(imageWrap);
+    }
+  }
 
-			const localPosts =
-				JSON.parse(backup);
+  const textarea = document.createElement("textarea");
+  textarea.className = "text";
+  textarea.value = post.text || "";
+  textarea.spellcheck = false;
 
-			posts =
-				serverPosts.map(p => {
+  article.appendChild(textarea);
 
-					const local =
-						localPosts.find(
-							lp => lp.id === p.id
-						);
+  let timer = null;
 
-					return {
-						...p,
-						text:
-							local?.text ?? p.text
-					};
+  textarea.addEventListener("input", () => {
+    clearTimeout(timer);
 
-				});
+    timer = setTimeout(async () => {
+      try {
+        await fetch(`${API}/api/update`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            id: post.id,
+            text: textarea.value
+          })
+        });
+      } catch (error) {
+        console.error("Update error:", error);
+      }
+    }, 400);
+  });
 
-		} else {
+  textarea.addEventListener("keydown", event => {
+    if (event.key !== "Enter") return;
 
-			posts = serverPosts;
+    event.preventDefault();
 
-		}
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
 
-		render();
+    const before = textarea.value.slice(0, start);
+    const after = textarea.value.slice(end);
 
-	} catch (e) {
+    const emoji = randomEmoji();
 
-		console.error(
-			"load failed",
-			e
-		);
+    textarea.value =
+      before +
+      "\n" +
+      emoji +
+      " " +
+      after;
 
-	}
+    const cursor = start + emoji.length + 2;
 
+    textarea.selectionStart = cursor;
+    textarea.selectionEnd = cursor;
+
+    textarea.dispatchEvent(new Event("input"));
+  });
+
+  return article;
 }
 
+async function loadFeed() {
+  try {
+    const response = await fetch(`${API}/api/feed`);
 
-/* =========================================================
-   SYNC
-   ========================================================= */
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
 
-async function sync() {
+    const result = await response.json();
 
-	try {
+    if (!result.ok || !Array.isArray(result.data)) {
+      throw new Error("Invalid feed response");
+    }
 
-		const res =
-			await fetch(`${API}/api/feed`);
+    feedElement.innerHTML = "";
 
-		const json =
-			await res.json();
+    result.data.forEach(post => {
+      feedElement.appendChild(createPost(post));
+    });
 
-		const serverPosts =
-			json.data || [];
-
-		serverPosts.forEach(serverPost => {
-
-			const local =
-				posts.find(
-					p => p.id === serverPost.id
-				);
-
-			if (!local) return;
-
-			if (!saveTimers[serverPost.id]) {
-
-				if (
-					local.text !==
-					serverPost.text
-				) {
-
-					local.text =
-						serverPost.text;
-
-					const textarea =
-						textareas[
-							serverPost.id
-						];
-
-					if (
-						textarea &&
-						textarea.value !==
-						serverPost.text
-					) {
-
-						textarea.value =
-							serverPost.text;
-
-					}
-
-				}
-
-			}
-
-		});
-
-	} catch (e) {
-
-		console.error(
-			"sync failed",
-			e
-		);
-
-	}
-
+  } catch (error) {
+    console.error("Feed error:", error);
+  }
 }
 
+let syncing = false;
 
-/* =========================================================
-   RENDER
-   ========================================================= */
+async function syncFeed() {
+  if (syncing) return;
 
-function render() {
+  syncing = true;
 
-	feed.innerHTML = "";
-	textareas = {};
+  try {
+    const response = await fetch(`${API}/api/feed`);
 
-	posts.forEach(item => {
+    if (!response.ok) return;
 
-		const post =
-			document.createElement("div");
+    const result = await response.json();
 
-		post.className = "post";
+    if (!result.ok || !Array.isArray(result.data)) return;
 
+    const currentIds = Array.from(
+      feedElement.querySelectorAll(".post")
+    ).map(post => post.dataset.id);
 
-		/* MEDIA */
+    const newIds = result.data.map(post => String(post.id));
 
-		const mapData =
-			parseMapURL(item.image);
+    if (currentIds.join(",") !== newIds.join(",")) {
+      loadFeed();
+    }
 
-		if (mapData) {
-
-			const mapWrap =
-				document.createElement("div");
-
-			mapWrap.className =
-				"mapWrap";
-
-			const map =
-				document.createElement("div");
-
-			map.className =
-				"map";
-
-			mapWrap.appendChild(map);
-
-			const link =
-				document.createElement("a");
-
-			link.className =
-				"mapLink";
-
-			link.href =
-				item.image;
-
-			link.target =
-				"_blank";
-
-			link.rel =
-				"noopener noreferrer";
-
-			link.textContent =
-				`Open in ${mapData.provider}`;
-
-			mapWrap.appendChild(link);
-
-			post.appendChild(mapWrap);
-
-			requestAnimationFrame(() => {
-				createMap(
-					map,
-					mapData,
-					item.image
-				);
-			});
-
-		} else {
-
-			const imageWrap =
-				document.createElement("div");
-
-			imageWrap.className =
-				"imageWrap";
-
-			const img =
-				document.createElement("img");
-
-			img.className =
-				"imageMain";
-
-			img.src =
-				item.image;
-
-			img.loading =
-				"lazy";
-
-			imageWrap.appendChild(img);
-
-			post.appendChild(imageWrap);
-
-		}
-
-
-		/* TEXT */
-
-		const text =
-			document.createElement("textarea");
-
-		text.className =
-			"text";
-
-		text.value =
-			item.text || "";
-
-		textareas[item.id] =
-			text;
-
-
-		text.addEventListener(
-			"keydown",
-			e => {
-
-				if (
-					e.key === "Enter" &&
-					!e.shiftKey
-				) {
-
-					e.preventDefault();
-
-					insertUserLine(text);
-
-				}
-
-			}
-		);
-
-
-		text.addEventListener(
-			"input",
-			e => {
-
-				const value =
-					e.target.value;
-
-				const target =
-					posts.find(
-						p => p.id === item.id
-					);
-
-				if (target) {
-					target.text =
-						value;
-				}
-
-				localStorage.setItem(
-					"feed_backup",
-					JSON.stringify(posts)
-				);
-
-				clearTimeout(
-					saveTimers[item.id]
-				);
-
-				saveTimers[item.id] =
-					setTimeout(
-						async () => {
-
-							try {
-
-								await fetch(
-									`${API}/api/update`,
-									{
-										method: "POST",
-
-										headers: {
-											"Content-Type":
-												"application/json"
-										},
-
-										body:
-											JSON.stringify({
-												id: item.id,
-												text: value
-											})
-									}
-								);
-
-							} catch (e) {
-
-								console.error(
-									"save failed",
-									e
-								);
-
-							} finally {
-
-								delete saveTimers[
-									item.id
-								];
-
-							}
-
-						},
-						400
-					);
-
-			}
-		);
-
-
-		post.appendChild(text);
-
-		feed.appendChild(post);
-
-	});
-
+  } catch (error) {
+    console.error("Sync error:", error);
+  } finally {
+    syncing = false;
+  }
 }
 
+loadFeed();
 
-load();
-
-setInterval(
-	sync,
-	2000
-);
+setInterval(syncFeed, 2000);

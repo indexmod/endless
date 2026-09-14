@@ -1,381 +1,190 @@
-const API =
-	"https://endless.wiki-self.workers.dev";
+const API = "https://endless.wiki-self.workers.dev";
 
+const imgInput = document.getElementById("img");
+const textInput = document.getElementById("text");
+const counter = document.getElementById("counter");
+const sendBtn = document.getElementById("sendBtn");
+const lastPost = document.getElementById("lastPost");
+const adminList = document.getElementById("adminList");
 
-const USER_EMOJIS = [
-	"🐈", "🐕", "🦊", "🐼", "🐸",
-	"🐙", "🦋", "🐝", "🦄", "🐳",
-	"🌞", "🌙", "⭐", "🪐", "🌈",
-	"🍋", "🍒", "🍀", "🌵", "🌻",
-	"🎈", "🎨", "🎧", "📷", "💿"
+const emojis = [
+  "😀", "😎", "🙂", "😏", "🤓",
+  "😶", "🙃", "😌", "🫥", "🤔",
+  "👽", "🤖", "👻", "🐱", "🐶",
+  "🦊", "🐸", "🐵", "🦄", "🐼"
 ];
 
-
 function randomEmoji() {
-
-	return USER_EMOJIS[
-		Math.floor(
-			Math.random() *
-			USER_EMOJIS.length
-		)
-	];
-
+  return emojis[Math.floor(Math.random() * emojis.length)];
 }
 
-
-/*
- * Add anonymous userpic
- * to every new line.
- */
+function updateCounter() {
+  const count = textInput.value.length;
+  counter.textContent = `${count} characters`;
+}
 
 function formatLines(text) {
+  return text
+    .split("\n")
+    .map(line => {
+      if (!line.trim()) return line;
 
-	return text
-		.split("\n")
-		.map(line => {
+      const trimmed = line.trim();
 
-			if (!line.trim()) {
-				return line;
-			}
+      if (/^\p{Extended_Pictographic}/u.test(trimmed)) {
+        return line;
+      }
 
-			if (
-				/^\p{Extended_Pictographic}\s/u
-				.test(line.trim())
-			) {
-				return line;
-			}
-
-			return (
-				randomEmoji() +
-				" " +
-				line
-			);
-
-		})
-		.join("\n");
-
+      return `${randomEmoji()} ${trimmed}`;
+    })
+    .join("\n");
 }
 
+textInput.addEventListener("input", updateCounter);
 
-/*
- * New line = new anonymous user
- */
+textInput.addEventListener("keydown", event => {
+  if (event.key !== "Enter") return;
 
-function insertNewUserLine(textarea) {
+  event.preventDefault();
 
-	const start =
-		textarea.selectionStart;
+  const start = textInput.selectionStart;
+  const end = textInput.selectionEnd;
 
-	const end =
-		textarea.selectionEnd;
+  const before = textInput.value.slice(0, start);
+  const after = textInput.value.slice(end);
 
-	const before =
-		textarea.value.slice(
-			0,
-			start
-		);
+  const emoji = randomEmoji();
 
-	const after =
-		textarea.value.slice(
-			end
-		);
+  textInput.value =
+    before +
+    "\n" +
+    emoji +
+    " " +
+    after;
 
-	const insertion =
-		"\n" +
-		randomEmoji() +
-		" ";
+  const cursor = start + emoji.length + 2;
 
-	textarea.value =
-		before +
-		insertion +
-		after;
+  textInput.selectionStart = cursor;
+  textInput.selectionEnd = cursor;
 
-	const cursor =
-		before.length +
-		insertion.length;
+  updateCounter();
+});
 
-	textarea.selectionStart =
-		cursor;
+async function addPost() {
+  const image = imgInput.value.trim();
+  const rawText = textInput.value;
 
-	textarea.selectionEnd =
-		cursor;
+  if (!image && !rawText.trim()) {
+    return;
+  }
 
-	textarea.dispatchEvent(
-		new Event(
-			"input",
-			{ bubbles: true }
-		)
-	);
+  const text = formatLines(rawText);
 
+  sendBtn.disabled = true;
+  sendBtn.textContent = "Sending…";
+
+  try {
+    const response = await fetch(`${API}/api/paste`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        image,
+        text
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    const result = await response.json();
+
+    if (!result.ok) {
+      throw new Error("API error");
+    }
+
+    imgInput.value = "";
+    textInput.value = "";
+
+    updateCounter();
+
+    renderLastPost(result.post);
+
+    await loadPosts();
+
+  } catch (error) {
+    console.error(error);
+    alert("Не удалось добавить пост.");
+  } finally {
+    sendBtn.disabled = false;
+    sendBtn.textContent = "Send";
+  }
 }
 
+function renderLastPost(post) {
+  lastPost.innerHTML = "";
 
-document.addEventListener(
-	"DOMContentLoaded",
-	() => {
+  if (!post) return;
 
-		const imgInput =
-			document.getElementById("img");
+  const item = document.createElement("div");
+  item.className = "adminItem";
 
-		const textInput =
-			document.getElementById("text");
+  if (post.image) {
+    const img = document.createElement("img");
+    img.src = post.image;
+    img.alt = "";
+    item.appendChild(img);
+  }
 
-		const counter =
-			document.getElementById("counter");
+  const text = document.createElement("div");
+  text.textContent = post.text || "";
 
-		const sendBtn =
-			document.getElementById("sendBtn");
+  item.appendChild(text);
+  lastPost.appendChild(item);
+}
 
-		const lastPost =
-			document.getElementById("lastPost");
+async function loadPosts() {
+  try {
+    const response = await fetch(`${API}/api/feed`);
 
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
 
-		if (
-			!imgInput ||
-			!textInput ||
-			!counter ||
-			!sendBtn ||
-			!lastPost
-		) {
+    const result = await response.json();
 
-			console.error(
-				"ADMIN INIT FAILED"
-			);
+    adminList.innerHTML = "";
 
-			return;
+    if (!result.ok || !Array.isArray(result.data)) {
+      return;
+    }
 
-		}
+    result.data.slice(0, 10).forEach(post => {
+      const item = document.createElement("div");
+      item.className = "adminItem";
 
+      if (post.image) {
+        const img = document.createElement("img");
+        img.src = post.image;
+        img.alt = "";
+        item.appendChild(img);
+      }
 
-		/* =========================
-		   INITIAL TEXT
-		   ========================= */
+      const text = document.createElement("div");
+      text.textContent = post.text || "";
 
-		textInput.addEventListener(
-			"input",
-			() => {
+      item.appendChild(text);
+      adminList.appendChild(item);
+    });
 
-				counter.textContent =
-					`${textInput.value.length} characters`;
+  } catch (error) {
+    console.error("Feed error:", error);
+  }
+}
 
-			}
-		);
+sendBtn.addEventListener("click", addPost);
 
-
-		/* =========================
-		   ENTER
-		   ========================= */
-
-		textInput.addEventListener(
-			"keydown",
-			e => {
-
-				if (
-					e.key === "Enter" &&
-					!e.shiftKey
-				) {
-
-					e.preventDefault();
-
-					insertNewUserLine(
-						textInput
-					);
-
-				}
-
-			}
-		);
-
-
-		/* =========================
-		   SEND
-		   ========================= */
-
-		sendBtn.addEventListener(
-			"click",
-			async () => {
-
-				const url =
-					imgInput.value.trim();
-
-				const text =
-					formatLines(
-						textInput.value.trim()
-					);
-
-
-				if (!url) {
-					return;
-				}
-
-
-				const payload = {
-					image: url,
-					text
-				};
-
-
-				try {
-
-					const res =
-						await fetch(
-							`${API}/api/paste`,
-							{
-								method: "POST",
-
-								headers: {
-									"content-type":
-										"application/json"
-								},
-
-								body:
-									JSON.stringify(
-										payload
-									)
-							}
-						);
-
-
-					if (!res.ok) {
-						throw new Error(
-							"POST FAILED"
-						);
-					}
-
-
-					const json =
-						await res.json();
-
-
-					imgInput.value = "";
-					textInput.value = "";
-
-					counter.textContent =
-						"0 characters";
-
-
-					renderLast(
-						json.post
-					);
-
-
-				} catch (e) {
-
-					console.error(
-						"SEND ERROR:",
-						e
-					);
-
-				}
-
-			}
-		);
-
-
-		/* =========================
-		   LAST POST
-		   ========================= */
-
-		function renderLast(post) {
-
-			lastPost.innerHTML = "";
-
-
-			const card =
-				document.createElement("div");
-
-			card.className =
-				"adminItem";
-
-
-			const url =
-				post.image || "";
-
-
-			const map =
-				url.match(
-					/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/
-				);
-
-
-			if (map) {
-
-				const label =
-					document.createElement("div");
-
-				label.textContent =
-					"Map post";
-
-				card.appendChild(label);
-
-			} else {
-
-				const img =
-					document.createElement("img");
-
-				img.src =
-					url;
-
-				card.appendChild(img);
-
-			}
-
-
-			const text =
-				document.createElement("div");
-
-			text.textContent =
-				post.text;
-
-
-			card.appendChild(text);
-
-			lastPost.appendChild(card);
-
-		}
-
-
-		/* =========================
-		   INITIAL
-		   ========================= */
-
-		async function initLast() {
-
-			try {
-
-				const res =
-					await fetch(
-						`${API}/api/feed`
-					);
-
-				const json =
-					await res.json();
-
-
-				if (
-					json.data &&
-					json.data.length
-				) {
-
-					renderLast(
-						json.data[0]
-					);
-
-				}
-
-			} catch (e) {
-
-				console.error(
-					"INIT LOAD ERROR",
-					e
-				);
-
-			}
-
-		}
-
-
-		initLast();
-
-	}
-);
+updateCounter();
+loadPosts();

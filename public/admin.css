@@ -1,189 +1,133 @@
-body {
-	margin: 0;
-	background: #111214;
-	color: #e6e6e6;
-
-	font-family:
-		ui-monospace,
-		SFMono-Regular,
-		Menlo,
-		Monaco,
-		Consolas,
-		monospace;
+* {
+  box-sizing: border-box;
 }
 
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+
+body {
+  background: #111214;
+  color: #f2f2f2;
+  font-family: Arial, Helvetica, sans-serif;
+}
 
 .panel {
-	display: flex;
-	flex-direction: column;
-	gap: 16px;
-
-	padding: 24px;
-
-	max-width: 700px;
-	margin: 0 auto;
-
-	box-sizing: border-box;
+  width: min(600px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 40px 0;
 }
 
-
-input,
-textarea,
-button {
-	font-family: inherit;
+#img,
+#text {
+  display: block;
+  width: 100%;
+  border: 0;
+  outline: none;
+  background: #1a1b1e;
+  color: #f2f2f2;
+  border-radius: 18px;
+  font: inherit;
 }
 
-
-input,
-textarea {
-	width: 100%;
-
-	box-sizing: border-box;
-
-	border: none;
-	outline: none;
-
-	border-radius: 16px;
-
-	background: #1a1b1e;
-	color: #e6e6e6;
-
-	padding: 18px;
-
-	font-size: 18px;
-
-	box-shadow: none;
+#img {
+  height: 56px;
+  padding: 0 20px;
+  font-size: 18px;
+  margin-bottom: 16px;
 }
 
-
-input {
-	height: 58px;
+#text {
+  min-height: 180px;
+  padding: 18px 20px;
+  resize: vertical;
+  font-size: 22px;
+  line-height: 1.5;
 }
 
-
-textarea {
-	min-height: 180px;
-
-	height: auto;
-
-	resize: none;
-
-	line-height: 1.6;
-
-	overflow: hidden;
-
-	field-sizing: content;
+#img::placeholder,
+#text::placeholder {
+  color: #777;
 }
-
-
-input:focus,
-textarea:focus {
-	box-shadow:
-		0 0 0 1px #555 inset;
-}
-
-
-button {
-	height: 58px;
-
-	border: none;
-	border-radius: 16px;
-
-	background: #e6e6e6;
-	color: #111214;
-
-	font-size: 18px;
-
-	cursor: pointer;
-}
-
-
-button:hover {
-	background: white;
-}
-
 
 #counter {
-	color: #777;
-
-	font-size: 12px;
-
-	padding-left: 4px;
+  margin: 10px 4px 18px;
+  color: #777;
+  font-size: 14px;
 }
 
-
-#lastPost {
-	max-width: 700px;
-
-	margin: 0 auto 30px;
-
-	padding: 0 24px;
-
-	box-sizing: border-box;
+#sendBtn {
+  width: 100%;
+  min-height: 56px;
+  border: 0;
+  border-radius: 18px;
+  background: #7cff00;
+  color: #111214;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
 }
 
+#sendBtn:hover {
+  opacity: 0.9;
+}
+
+#lastPost,
+#adminList {
+  width: min(600px, calc(100% - 40px));
+  margin: 0 auto;
+}
 
 .adminItem {
-	background: #1a1b1e;
-
-	border-radius: 16px;
-
-	padding: 12px;
-
-	display: flex;
-
-	gap: 14px;
-
-	align-items: center;
+  margin-bottom: 30px;
+  padding: 15px;
+  border-radius: 18px;
+  background: #1a1b1e;
 }
-
 
 .adminItem img {
-	width: 80px;
-	height: 80px;
-
-	object-fit: cover;
-
-	border-radius: 10px;
+  display: block;
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 12px;
+  margin-bottom: 10px;
 }
-
 
 .endlessBtn {
-	display: block;
-
-	width: 200px;
-
-	margin: 30px auto;
-
-	padding: 14px 20px;
-
-	box-sizing: border-box;
-
-	text-align: center;
-
-	border-radius: 16px;
-
-	background: #1a1b1e;
-
-	color: #e6e6e6;
-
-	text-decoration: none;
+  display: block;
+  width: min(600px, calc(100% - 40px));
+  margin: 30px auto 60px;
+  text-decoration: none;
 }
 
+.endlessBtn button {
+  width: 100%;
+  min-height: 56px;
+  border: 0;
+  border-radius: 18px;
+  background: #1a1b1e;
+  color: #f2f2f2;
+  font-size: 18px;
+  cursor: pointer;
+}
 
 @media (max-width: 600px) {
+  .panel {
+    width: calc(100% - 24px);
+    padding-top: 24px;
+  }
 
-	.panel {
-		padding: 14px;
-	}
+  #text {
+    font-size: 20px;
+  }
 
-	#lastPost {
-		padding: 0 14px;
-	}
-
-	input,
-	textarea {
-		font-size: 18px;
-	}
-
+  #lastPost,
+  #adminList,
+  .endlessBtn {
+    width: calc(100% - 24px);
+  }
 }
