@@ -1,39 +1,136 @@
+const API = "https://endless.wiki-self.workers.dev";
+
+const list = document.getElementById("adminList");
+
 async function load() {
-  const res = await fetch("/api/feed");
-  const json = await res.json();
+  try {
+    const response = await fetch(`${API}/api/feed`);
 
-  const list = document.getElementById("adminList");
-  list.innerHTML = "";
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
 
-  json.data.forEach(post => {
+    const json = await response.json();
 
-    const item = document.createElement("div");
-    item.className = "adminItem";
+    list.innerHTML = "";
 
-    item.innerHTML = `
-      <img src="${post.image}" class="adminPreview" />
+    if (!json.ok || !Array.isArray(json.data)) {
+      throw new Error("Invalid feed response");
+    }
 
-      <div class="adminText">
-        ${post.text?.slice(0, 120) || ""}
-      </div>
+    json.data.forEach(post => {
+      const item = document.createElement("div");
+      item.className = "adminItem";
 
-      <div class="adminActions">
-        <button class="deleteBtn">delete</button>
-      </div>
-    `;
+      if (post.image) {
+        const image = document.createElement("img");
 
-    item.querySelector(".deleteBtn").onclick = async () => {
-      await fetch("/api/delete", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: post.id })
-      });
+        image.className = "adminPreview";
+        image.src = post.image;
+        image.alt = "";
 
-      load();
-    };
+        item.appendChild(image);
+      }
 
-    list.appendChild(item);
-  });
+      const text = document.createElement("div");
+
+      text.className = "adminText";
+      text.textContent =
+        post.text?.slice(0, 120) || "";
+
+      item.appendChild(text);
+
+      const actions = document.createElement("div");
+
+      actions.className = "adminActions";
+
+      const deleteBtn =
+        document.createElement("button");
+
+      deleteBtn.className = "deleteBtn";
+      deleteBtn.type = "button";
+      deleteBtn.textContent = "delete";
+
+      deleteBtn.addEventListener(
+        "click",
+        async () => {
+
+          const confirmed = confirm(
+            "Delete this post?"
+          );
+
+          if (!confirmed) {
+            return;
+          }
+
+          deleteBtn.disabled = true;
+          deleteBtn.textContent = "deleting…";
+
+          try {
+            const response =
+              await fetch(`${API}/api/delete`, {
+                method: "POST",
+
+                headers: {
+                  "Content-Type":
+                    "application/json"
+                },
+
+                body: JSON.stringify({
+                  id: post.id
+                })
+              });
+
+            if (!response.ok) {
+              throw new Error(
+                `HTTP ${response.status}`
+              );
+            }
+
+            const result =
+              await response.json();
+
+            if (!result.ok) {
+              throw new Error(
+                "Delete failed"
+              );
+            }
+
+            await load();
+
+          } catch (error) {
+
+            console.error(
+              "Delete error:",
+              error
+            );
+
+            alert(
+              "Не удалось удалить пост."
+            );
+
+            deleteBtn.disabled = false;
+            deleteBtn.textContent = "delete";
+          }
+        }
+      );
+
+      actions.appendChild(deleteBtn);
+      item.appendChild(actions);
+
+      list.appendChild(item);
+    });
+
+  } catch (error) {
+
+    console.error(
+      "Moderator feed error:",
+      error
+    );
+
+    list.innerHTML =
+      "<div class=\"moderatorError\">Не удалось загрузить ленту.</div>";
+  }
 }
 
 load();
