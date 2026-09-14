@@ -19,10 +19,9 @@
 <meta property="og:image" content="./endless-cover.png">
 <meta property="og:url" content="https://indexmod.github.io/endless/">
 
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Endless">
-<meta name="twitter:description" content="Живые тексты под изображениями">
-<meta name="twitter:image" content="./endless-cover.png">
+<link rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      crossorigin=""/>
 
 <link rel="stylesheet" href="./index.css">
 </head>
@@ -31,9 +30,10 @@
 
 <div id="feed" class="feed"></div>
 
-<div id="addTrigger">
-  <a href="./admin.html">+</a>
-</div>
+<a id="addTrigger" href="./admin.html" aria-label="Add post">+</a>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        crossorigin=""></script>
 
 <script src="./index.js" defer></script>
 <script src="./sound.js"></script>

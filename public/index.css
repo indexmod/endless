@@ -1,107 +1,120 @@
-body {
-	margin: 0;
-	background: #111214;
-	color: #e6e6e6;
+/* ===== ADD BUTTON ===== */
 
-	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+#addTrigger {
+	position: fixed;
+	right: 28px;
+	bottom: 28px;
 
-	overflow-x: hidden;
-	overflow-y: auto;
+	width: 72px;
+	height: 72px;
 
-	-webkit-text-size-adjust: 100%;
-	text-size-adjust: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	background: #e6e6e6;
+	color: #111214;
+
+	border-radius: 50%;
+
+	font-family: Arial, sans-serif;
+	font-size: 52px;
+	font-weight: 300;
+	line-height: 1;
+
+	text-decoration: none;
+
+	box-shadow: 0 8px 30px rgba(0,0,0,.45);
+
+	z-index: 9999;
+
+	transition:
+		transform .15s ease,
+		background .15s ease;
 }
 
-/* ===== LAYOUT ===== */
-
-.feed {
-	max-width: 520px;
-	margin: 0 auto;
-
-	padding: 40px 20px;
-
-	box-sizing: border-box;
+#addTrigger:hover {
+	transform: scale(1.08);
+	background: white;
 }
 
-/* ===== POST ===== */
+#addTrigger:active {
+	transform: scale(.94);
+}
 
-.post {
+
+/* ===== MAP ===== */
+
+.mapWrap {
 	width: 100%;
-	margin-bottom: 40px;
-}
-
-/* ===== IMAGE ===== */
-
-.imageWrap {
-	width: 100%;
+	margin-bottom: 20px;
 
 	border-radius: 18px;
 	overflow: hidden;
 
 	background: #1a1b1e;
 
-	padding: 5px;
-
-	box-sizing: border-box;
-
-	margin-bottom: 20px;
+	position: relative;
 }
 
-.imageMain {
+.map {
 	width: 100%;
-	height: auto;
+	height: min(70vh, 520px);
+	min-height: 300px;
+}
 
+
+/* ===== MAP LINK ===== */
+
+.mapLink {
 	display: block;
 
-	border-radius: 12px;
+	padding: 12px 16px;
 
-	object-fit: cover;
+	color: #aaa;
+	background: #1a1b1e;
+
+	font-size: 13px;
+
+	text-decoration: none;
+
+	border-top: 1px solid #292a2d;
 }
+
+.mapLink:hover {
+	color: white;
+}
+
 
 /* ===== TEXT ===== */
 
 .text {
-	width: 100%;
-
 	min-height: 120px;
-
-	background: #1a1b1e;
-	border-radius: 18px;
-
-	padding: 18px 20px 60px 20px;
-
-	box-sizing: border-box;
-
-	border: none;
-	outline: none;
-	resize: none;
-
-	color: #b8b8b8;
-
-	font-size: 22px;
-	line-height: 1.6;
+	height: auto;
 
 	overflow: hidden;
 
-	white-space: pre-wrap;
-	word-wrap: break-word;
-
-	display: block;
-
-	/* 💥 КЛЮЧЕВОЕ */
 	field-sizing: content;
 }
+
 
 /* ===== MOBILE ===== */
 
 @media (max-width: 600px) {
-	.feed {
-		max-width: 100%;
-		padding: 20px 10px;
+
+	#addTrigger {
+		right: 16px;
+		bottom: 16px;
+
+		width: 62px;
+		height: 62px;
+
+		font-size: 44px;
 	}
 
-	.text {
-		font-size: 24px;
-		line-height: 1.75;
+	.map {
+		height: 60vh;
+		min-height: 280px;
 	}
+
 }

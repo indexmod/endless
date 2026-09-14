@@ -1,107 +1,189 @@
-body{
-  margin:0;
-  background:#111214;
-  color:#e6e6e6;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+body {
+	margin: 0;
+	background: #111214;
+	color: #e6e6e6;
+
+	font-family:
+		ui-monospace,
+		SFMono-Regular,
+		Menlo,
+		Monaco,
+		Consolas,
+		monospace;
 }
 
-/* панель */
-.panel{
-  display:flex;
-  flex-direction:column;
-  gap:20px;
 
-  padding:40px;
-  max-width:600px;
-  margin:0 auto;
+.panel {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+
+	padding: 24px;
+
+	max-width: 700px;
+	margin: 0 auto;
+
+	box-sizing: border-box;
 }
 
-/* блоки */
-.panel > *{
-  background:#1a1b1e;
-  border-radius:14px;
-  padding:14px;
-  box-sizing:border-box;
+
+input,
+textarea,
+button {
+	font-family: inherit;
 }
 
-/* input */
-input, textarea{
-  width:100%;
-  border:none;
-  outline:none;
-  resize:none;
 
-  background:transparent;
-  color:#b8b8b8;
+input,
+textarea {
+	width: 100%;
 
-  font-size:16px;
-  font-family:inherit;
+	box-sizing: border-box;
+
+	border: none;
+	outline: none;
+
+	border-radius: 16px;
+
+	background: #1a1b1e;
+	color: #e6e6e6;
+
+	padding: 18px;
+
+	font-size: 18px;
+
+	box-shadow: none;
 }
 
-textarea{
-  height:140px;
+
+input {
+	height: 58px;
 }
 
-/* focus */
-input:focus, textarea:focus{
-  box-shadow:0 0 0 1px #666 inset;
+
+textarea {
+	min-height: 180px;
+
+	height: auto;
+
+	resize: none;
+
+	line-height: 1.6;
+
+	overflow: hidden;
+
+	field-sizing: content;
 }
 
-/* кнопки */
-button{
-  padding:12px;
-  border:none;
-  border-radius:14px;
 
-  background:#2a2b2f;
-  color:#e6e6e6;
-
-  cursor:pointer;
+input:focus,
+textarea:focus {
+	box-shadow:
+		0 0 0 1px #555 inset;
 }
 
-button:hover{
-  background:#34353a;
+
+button {
+	height: 58px;
+
+	border: none;
+	border-radius: 16px;
+
+	background: #e6e6e6;
+	color: #111214;
+
+	font-size: 18px;
+
+	cursor: pointer;
 }
 
-/* last post */
-#lastPost{
-  max-width:600px;
-  margin:0 auto;
+
+button:hover {
+	background: white;
 }
 
-/* список */
-#adminList{
-  max-width:600px;
-  margin:20px auto;
 
-  display:flex;
-  flex-direction:column;
-  gap:20px;
+#counter {
+	color: #777;
+
+	font-size: 12px;
+
+	padding-left: 4px;
 }
 
-/* карточка */
-.adminItem{
-  background:#1a1b1e;
-  border-radius:14px;
-  padding:12px;
 
-  display:flex;
-  gap:12px;
-  align-items:center;
+#lastPost {
+	max-width: 700px;
+
+	margin: 0 auto 30px;
+
+	padding: 0 24px;
+
+	box-sizing: border-box;
 }
 
-.adminItem img{
-  width:80px;
-  height:80px;
-  object-fit:cover;
-  border-radius:10px;
+
+.adminItem {
+	background: #1a1b1e;
+
+	border-radius: 16px;
+
+	padding: 12px;
+
+	display: flex;
+
+	gap: 14px;
+
+	align-items: center;
 }
 
-/* кнопка перехода */
-.endlessBtn{
-  text-align:center;
-  display:block;
-  margin:20px auto;
 
-  width:200px;
+.adminItem img {
+	width: 80px;
+	height: 80px;
+
+	object-fit: cover;
+
+	border-radius: 10px;
+}
+
+
+.endlessBtn {
+	display: block;
+
+	width: 200px;
+
+	margin: 30px auto;
+
+	padding: 14px 20px;
+
+	box-sizing: border-box;
+
+	text-align: center;
+
+	border-radius: 16px;
+
+	background: #1a1b1e;
+
+	color: #e6e6e6;
+
+	text-decoration: none;
+}
+
+
+@media (max-width: 600px) {
+
+	.panel {
+		padding: 14px;
+	}
+
+	#lastPost {
+		padding: 0 14px;
+	}
+
+	input,
+	textarea {
+		font-size: 18px;
+	}
+
 }
