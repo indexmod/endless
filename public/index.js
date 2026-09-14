@@ -35,14 +35,51 @@ function formatLines(text) {
 }
 
 function parseMapUrl(value) {
+  const trimmedValue = value.trim();
+
+  /*
+   * Plain coordinates
+   *
+   * Example:
+   * 36.558039, 31.963763
+   */
+  const coordinateMatch = trimmedValue.match(
+    /^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/
+  );
+
+  if (coordinateMatch) {
+    const lat = Number(coordinateMatch[1]);
+    const lng = Number(coordinateMatch[2]);
+
+    if (
+      Number.isFinite(lat) &&
+      Number.isFinite(lng) &&
+      lat >= -90 &&
+      lat <= 90 &&
+      lng >= -180 &&
+      lng <= 180
+    ) {
+      return {
+        lat,
+        lng,
+        zoom: 15
+      };
+    }
+  }
+
   try {
-    const url = new URL(value);
+    const url = new URL(trimmedValue);
 
     let lat = null;
     let lng = null;
     let zoom = 13;
 
-    // Google Maps
+    /*
+     * Google Maps
+     *
+     * Example:
+     * https://www.google.com/maps/@36.558039,31.963763,15z
+     */
     const googleMatch = url.pathname.match(
       /@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)(?:,(\d+(?:\.\d+)?)z)?/
     );
@@ -56,7 +93,10 @@ function parseMapUrl(value) {
     const q = url.searchParams.get("q");
     const ll = url.searchParams.get("ll");
 
-    if (!lat && q) {
+    /*
+     * q=lat,lng
+     */
+    if (lat === null && q) {
       const match = q.match(
         /^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/
       );
@@ -67,7 +107,10 @@ function parseMapUrl(value) {
       }
     }
 
-    if (!lat && ll) {
+    /*
+     * ll=lat,lng
+     */
+    if (lat === null && ll) {
       const match = ll.match(
         /^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/
       );
@@ -78,7 +121,12 @@ function parseMapUrl(value) {
       }
     }
 
-    // OpenStreetMap
+    /*
+     * OpenStreetMap
+     *
+     * Example:
+     * https://www.openstreetmap.org/#map=15/36.558039/31.963763
+     */
     const map = url.hash.match(
       /#map=(\d+(?:\.\d+)?)\/(-?\d+(?:\.\d+)?)\/(-?\d+(?:\.\d+)?)/
     );
@@ -89,16 +137,24 @@ function parseMapUrl(value) {
       lng = Number(map[3]);
     }
 
+    /*
+     * OpenStreetMap marker coordinates
+     */
     const mlat = url.searchParams.get("mlat");
     const mlon = url.searchParams.get("mlon");
 
-    if (!lat && mlat && mlon) {
+    if (lat === null && mlat && mlon) {
       lat = Number(mlat);
       lng = Number(mlon);
     }
 
-    // Apple Maps
-    if (!lat && ll) {
+    /*
+     * Apple Maps
+     *
+     * Apple can use:
+     * ?ll=lat,lng
+     */
+    if (lat === null && ll) {
       const match = ll.match(
         /^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/
       );
@@ -109,10 +165,15 @@ function parseMapUrl(value) {
       }
     }
 
-    // Bing Maps
+    /*
+     * Bing Maps
+     *
+     * Example:
+     * ?cp=36.558039~31.963763
+     */
     const cp = url.searchParams.get("cp");
 
-    if (!lat && cp) {
+    if (lat === null && cp) {
       const match = cp.match(
         /^\s*(-?\d+(?:\.\d+)?)~(-?\d+(?:\.\d+)?)\s*$/
       );
@@ -123,8 +184,16 @@ function parseMapUrl(value) {
       }
     }
 
-    // Yandex Maps
-    if (!lat && ll && url.hostname.includes("yandex")) {
+    /*
+     * Yandex Maps
+     *
+     * Yandex uses longitude,latitude
+     */
+    if (
+      lat === null &&
+      ll &&
+      url.hostname.includes("yandex")
+    ) {
       const match = ll.match(
         /^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/
       );
@@ -177,7 +246,9 @@ function createMap(container, location) {
     }
   ).addTo(map);
 
-  L.marker([location.lat, location.lng]).addTo(map);
+  L.marker(
+    [location.lat, location.lng]
+  ).addTo(map);
 
   setTimeout(() => {
     map.invalidateSize();
@@ -186,40 +257,62 @@ function createMap(container, location) {
 
 function createPost(post) {
   const article = document.createElement("article");
+
   article.className = "post";
+
+  /*
+   * Important for live synchronization.
+   */
+  article.dataset.id = String(post.id);
 
   if (post.image) {
     const mapLocation = parseMapUrl(post.image);
 
     if (mapLocation) {
+
       const mapWrap = document.createElement("div");
+
       mapWrap.className = "mapWrap";
 
       const mapElement = document.createElement("div");
+
       mapElement.className = "map";
 
       mapWrap.appendChild(mapElement);
+
       article.appendChild(mapWrap);
 
-      createMap(mapElement, mapLocation);
+      createMap(
+        mapElement,
+        mapLocation
+      );
 
     } else {
+
       const imageWrap = document.createElement("div");
+
       imageWrap.className = "imageWrap";
 
       const image = document.createElement("img");
+
       image.className = "imageMain";
+
       image.src = post.image;
+
       image.alt = "";
 
       imageWrap.appendChild(image);
+
       article.appendChild(imageWrap);
     }
   }
 
   const textarea = document.createElement("textarea");
+
   textarea.className = "text";
+
   textarea.value = post.text || "";
+
   textarea.spellcheck = false;
 
   article.appendChild(textarea);
@@ -227,38 +320,59 @@ function createPost(post) {
   let timer = null;
 
   textarea.addEventListener("input", () => {
+
     clearTimeout(timer);
 
     timer = setTimeout(async () => {
+
       try {
+
         await fetch(`${API}/api/update`, {
           method: "POST",
+
           headers: {
             "Content-Type": "application/json"
           },
+
           body: JSON.stringify({
             id: post.id,
             text: textarea.value
           })
         });
+
       } catch (error) {
-        console.error("Update error:", error);
+
+        console.error(
+          "Update error:",
+          error
+        );
       }
+
     }, 400);
   });
 
   textarea.addEventListener("keydown", event => {
-    if (event.key !== "Enter") return;
+
+    if (event.key !== "Enter") {
+      return;
+    }
 
     event.preventDefault();
 
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
+    const start =
+      textarea.selectionStart;
 
-    const before = textarea.value.slice(0, start);
-    const after = textarea.value.slice(end);
+    const end =
+      textarea.selectionEnd;
 
-    const emoji = randomEmoji();
+    const before =
+      textarea.value.slice(0, start);
+
+    const after =
+      textarea.value.slice(end);
+
+    const emoji =
+      randomEmoji();
 
     textarea.value =
       before +
@@ -267,75 +381,133 @@ function createPost(post) {
       " " +
       after;
 
-    const cursor = start + emoji.length + 2;
+    const cursor =
+      start +
+      emoji.length +
+      2;
 
-    textarea.selectionStart = cursor;
-    textarea.selectionEnd = cursor;
+    textarea.selectionStart =
+      cursor;
 
-    textarea.dispatchEvent(new Event("input"));
+    textarea.selectionEnd =
+      cursor;
+
+    textarea.dispatchEvent(
+      new Event("input")
+    );
   });
 
   return article;
 }
 
 async function loadFeed() {
+
   try {
-    const response = await fetch(`${API}/api/feed`);
+
+    const response =
+      await fetch(`${API}/api/feed`);
 
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
+      throw new Error(
+        `HTTP ${response.status}`
+      );
     }
 
-    const result = await response.json();
+    const result =
+      await response.json();
 
-    if (!result.ok || !Array.isArray(result.data)) {
-      throw new Error("Invalid feed response");
+    if (
+      !result.ok ||
+      !Array.isArray(result.data)
+    ) {
+      throw new Error(
+        "Invalid feed response"
+      );
     }
 
     feedElement.innerHTML = "";
 
     result.data.forEach(post => {
-      feedElement.appendChild(createPost(post));
+
+      feedElement.appendChild(
+        createPost(post)
+      );
+
     });
 
   } catch (error) {
-    console.error("Feed error:", error);
+
+    console.error(
+      "Feed error:",
+      error
+    );
   }
 }
 
 let syncing = false;
 
 async function syncFeed() {
-  if (syncing) return;
+
+  if (syncing) {
+    return;
+  }
 
   syncing = true;
 
   try {
-    const response = await fetch(`${API}/api/feed`);
 
-    if (!response.ok) return;
+    const response =
+      await fetch(`${API}/api/feed`);
 
-    const result = await response.json();
+    if (!response.ok) {
+      return;
+    }
 
-    if (!result.ok || !Array.isArray(result.data)) return;
+    const result =
+      await response.json();
 
-    const currentIds = Array.from(
-      feedElement.querySelectorAll(".post")
-    ).map(post => post.dataset.id);
+    if (
+      !result.ok ||
+      !Array.isArray(result.data)
+    ) {
+      return;
+    }
 
-    const newIds = result.data.map(post => String(post.id));
+    const currentIds =
+      Array.from(
+        feedElement.querySelectorAll(".post")
+      ).map(post =>
+        post.dataset.id
+      );
 
-    if (currentIds.join(",") !== newIds.join(",")) {
-      loadFeed();
+    const newIds =
+      result.data.map(post =>
+        String(post.id)
+      );
+
+    if (
+      currentIds.join(",") !==
+      newIds.join(",")
+    ) {
+      await loadFeed();
     }
 
   } catch (error) {
-    console.error("Sync error:", error);
+
+    console.error(
+      "Sync error:",
+      error
+    );
+
   } finally {
+
     syncing = false;
   }
 }
 
 loadFeed();
 
-setInterval(syncFeed, 2000);
+setInterval(
+  syncFeed,
+  2000
+);
